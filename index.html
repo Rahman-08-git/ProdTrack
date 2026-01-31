@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flux Productivity - Debug Version</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <title>Flux Productivity</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;500&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --bg-primary: #0a0e1a;
@@ -46,13 +49,131 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
+            background:
                 radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 80% 70%, rgba(34, 211, 238, 0.1) 0%, transparent 50%);
             pointer-events: none;
             z-index: 0;
         }
 
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Auth Section */
+        .auth-section {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            animation: fadeInDown 0.5s ease-out;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 0.75rem 1.25rem;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-primary);
+        }
+
+        .user-name {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+
+        .auth-btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .sign-out-btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sign-out-btn:hover {
+            background: var(--accent-danger);
+            border-color: var(--accent-danger);
+            color: white;
+        }
+
+        /* Sync Status */
+        .sync-status {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.75rem 1.25rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 1000;
+            animation: fadeInDown 0.5s ease-out;
+        }
+
+        .sync-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-success);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
+        /* Login Screen */
         .login-screen {
             display: flex;
             align-items: center;
@@ -67,9 +188,11 @@
             border: 1px solid var(--glass-border);
             border-radius: 24px;
             padding: 3rem;
-            max-width: 600px;
+            max-width: 500px;
             width: 100%;
+            text-align: center;
             box-shadow: var(--shadow-card);
+            animation: fadeInUp 0.8s ease-out;
             position: relative;
             z-index: 1;
         }
@@ -83,74 +206,32 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 1rem;
-            text-align: center;
         }
 
         .login-subtitle {
             font-size: 0.9rem;
             color: var(--text-secondary);
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
             letter-spacing: 2px;
-            text-align: center;
         }
 
-        .debug-section {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .debug-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.2rem;
-            color: var(--accent-primary);
-            margin-bottom: 1rem;
-        }
-
-        .debug-item {
+        .login-options {
             display: flex;
-            justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid var(--glass-border);
-            font-size: 0.85rem;
-        }
-
-        .debug-item:last-child {
-            border-bottom: none;
-        }
-
-        .debug-label {
-            color: var(--text-secondary);
-        }
-
-        .debug-value {
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-
-        .status-ok {
-            color: var(--accent-success);
-        }
-
-        .status-error {
-            color: var(--accent-danger);
+            flex-direction: column;
+            gap: 1rem;
         }
 
         .login-btn {
-            width: 100%;
             padding: 1.25rem;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            background: white;
             border: none;
             border-radius: 12px;
-            color: white;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1rem;
+            color: #1f2937;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-bottom: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -159,306 +240,1150 @@
 
         .login-btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .login-btn.guest {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+        }
+
+        .login-btn.guest:hover {
+            background: var(--bg-tertiary);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .tagline {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 0.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            overflow-x: auto;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .nav-tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 1rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
             box-shadow: var(--shadow-glow);
         }
 
-        .login-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .error-box {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid var(--accent-danger);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-top: 1rem;
-            color: var(--accent-danger);
-            font-size: 0.85rem;
+        .tab-content {
             display: none;
+            animation: fadeIn 0.5s ease-out;
         }
 
-        .error-box.show {
+        .tab-content.active {
             display: block;
         }
 
-        .success-box {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid var(--accent-success);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-top: 1rem;
-            color: var(--accent-success);
-            font-size: 0.85rem;
-            display: none;
-        }
-
-        .success-box.show {
-            display: block;
-        }
-
-        .config-input {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--bg-secondary);
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
             border: 1px solid var(--glass-border);
-            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 2px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="datetime-local"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 1rem 1.25rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
             color: var(--text-primary);
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
         }
 
-        .config-input:focus {
+        input:focus {
             outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+        }
+
+        .habit-list,
+        .task-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .habit-item,
+        .task-item {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .habit-item:hover,
+        .task-item:hover {
+            background: rgba(26, 31, 53, 0.8);
+            border-color: var(--accent-primary);
+            transform: translateX(5px);
+        }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--glass-border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .checkbox.checked {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
             border-color: var(--accent-primary);
         }
 
-        .help-text {
+        .checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .habit-name,
+        .task-name {
+            flex: 1;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .habit-item.completed .habit-name,
+        .task-item.completed .task-name {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .delete-btn {
+            background: var(--accent-danger);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
             font-size: 0.75rem;
-            color: var(--text-tertiary);
-            margin-top: 0.5rem;
+            font-family: 'Orbitron', sans-serif;
+            transition: all 0.3s ease;
         }
 
-        .step-by-step {
+        .delete-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        .hours-section {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .hours-section label {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .hours-section input {
+            max-width: 120px;
+        }
+
+        .chart-container {
+            margin-top: 3rem;
+            padding: 2rem;
             background: var(--bg-tertiary);
-            border-left: 3px solid var(--accent-primary);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .chart {
+            width: 100%;
+            height: 300px;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
             padding: 1rem;
-            margin: 1rem 0;
-            font-size: 0.85rem;
         }
 
-        .step-by-step ol {
-            margin-left: 1.5rem;
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(180deg, var(--accent-secondary), var(--accent-primary));
+            border-radius: 8px 8px 0 0;
+            min-height: 20px;
+            position: relative;
+            transition: all 0.5s ease;
+        }
+
+        .chart-bar::before {
+            content: attr(data-hours) 'h';
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .chart-labels {
+            display: flex;
+            gap: 8px;
             margin-top: 0.5rem;
+            padding: 0 1rem;
         }
 
-        .step-by-step li {
-            margin: 0.5rem 0;
+        .chart-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+        }
+
+        .timer-display {
+            text-align: center;
+            margin: 3rem 0;
+        }
+
+        .timer-circle {
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 2rem;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 4px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.2);
+        }
+
+        .timer-circle.active {
+            border-color: var(--accent-primary);
+            box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5), var(--shadow-glow);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .timer-time {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 2px;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .timer-config {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.2);
+            }
+
+            50% {
+                box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5), 0 0 60px rgba(99, 102, 241, 0.5);
+            }
+        }
+
+        .reminder-time {
+            font-size: 0.75rem;
+            color: var(--accent-warning);
+            padding: 0.25rem 0.75rem;
+            background: rgba(245, 158, 11, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-tertiary);
+            font-style: italic;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+                padding-top: 5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .nav-tab {
+                min-width: 100%;
+            }
+
+            .glass-card {
+                padding: 1.5rem;
+            }
+
+            .timer-circle {
+                width: 220px;
+                height: 220px;
+            }
+
+            .timer-time {
+                font-size: 2.5rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            input[type="text"],
+            input[type="number"],
+            input[type="datetime-local"] {
+                min-width: 100%;
+            }
+
+            .sync-status {
+                top: auto;
+                bottom: 1rem;
+                left: 1rem;
+                font-size: 0.65rem;
+                padding: 0.5rem 1rem;
+            }
+
+            .auth-section {
+                top: auto;
+                bottom: 1rem;
+                right: 1rem;
+            }
+
+            .user-info {
+                font-size: 0.65rem;
+                padding: 0.5rem 1rem;
+            }
+
+            .user-avatar {
+                width: 24px;
+                height: 24px;
+            }
         }
     </style>
 </head>
+
 <body>
-    <div class="login-screen">
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-screen">
         <div class="login-card">
             <h1 class="login-title">FLUX</h1>
-            <p class="login-subtitle">DIAGNOSTIC MODE</p>
-
-            <div class="debug-section">
-                <h3 class="debug-title">System Check</h3>
-                <div class="debug-item">
-                    <span class="debug-label">Firebase SDK Loaded:</span>
-                    <span class="debug-value" id="sdk-status">Checking...</span>
-                </div>
-                <div class="debug-item">
-                    <span class="debug-label">Configuration Valid:</span>
-                    <span class="debug-value" id="config-status">Checking...</span>
-                </div>
-                <div class="debug-item">
-                    <span class="debug-label">Auth Initialized:</span>
-                    <span class="debug-value" id="auth-status">Checking...</span>
-                </div>
-                <div class="debug-item">
-                    <span class="debug-label">Current Domain:</span>
-                    <span class="debug-value" id="domain-status">-</span>
-                </div>
-            </div>
-
-            <div class="debug-section">
-                <h3 class="debug-title">Firebase Configuration</h3>
-                <p class="help-text">Enter your Firebase config values below:</p>
-                
-                <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 1rem;">API Key:</label>
-                <input type="text" class="config-input" id="apiKey" placeholder="AIza...">
-                
-                <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 1rem;">Auth Domain:</label>
-                <input type="text" class="config-input" id="authDomain" placeholder="your-project.firebaseapp.com">
-                
-                <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 1rem;">Database URL:</label>
-                <input type="text" class="config-input" id="databaseURL" placeholder="https://your-project-default-rtdb.firebaseio.com">
-                
-                <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 1rem;">Project ID:</label>
-                <input type="text" class="config-input" id="projectId" placeholder="your-project-id">
-                
-                <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 1rem;">Storage Bucket:</label>
-                <input type="text" class="config-input" id="storageBucket" placeholder="your-project.appspot.com">
-                
-                <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 1rem;">Messaging Sender ID:</label>
-                <input type="text" class="config-input" id="messagingSenderId" placeholder="123456789">
-                
-                <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 1rem;">App ID:</label>
-                <input type="text" class="config-input" id="appId" placeholder="1:123456789:web:abc123">
-
-                <button class="login-btn" onclick="initializeFirebase()" style="margin-top: 1.5rem;">
-                    Initialize Firebase
+            <p class="login-subtitle">Productivity Tracker</p>
+            <div class="login-options">
+                <button class="login-btn" onclick="signInWithGoogle()">
+                    <svg width="20" height="20" viewBox="0 0 24 24">
+                        <path fill="#4285F4"
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853"
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05"
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                        <path fill="#EA4335"
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                    </svg>
+                    Sign in with Google
+                </button>
+                <button class="login-btn guest" onclick="continueAsGuest()">
+                    Continue as Guest (Local Only)
                 </button>
             </div>
+            <p style="margin-top: 2rem; font-size: 0.75rem; color: var(--text-tertiary);">
+                Sign in with Google to sync across devices.<br>
+                Guest mode saves data locally in your browser only.
+            </p>
+        </div>
+    </div>
 
-            <button class="login-btn" id="google-signin-btn" onclick="testGoogleSignIn()" disabled>
-                <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                Test Google Sign-In
-            </button>
+    <!-- Main App -->
+    <div id="main-app" class="hidden">
+        <div class="sync-status">
+            <div class="sync-indicator"></div>
+            <span>Auto-Save Active</span>
+        </div>
 
-            <div class="error-box" id="error-box"></div>
-            <div class="success-box" id="success-box"></div>
+        <div class="auth-section">
+            <div class="user-info" id="user-info">
+                <img id="user-avatar" class="user-avatar" src="" alt="User">
+                <span id="user-name" class="user-name"></span>
+                <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+            </div>
+        </div>
 
-            <div class="step-by-step">
-                <strong>Common Issues & Fixes:</strong>
-                <ol>
-                    <li><strong>Unauthorized domain:</strong> Go to Firebase Console → Authentication → Settings → Authorized domains. Add your current domain (shown above).</li>
-                    <li><strong>Wrong config:</strong> Make sure you copied ALL values from Firebase Console → Project Settings → Your apps → Web app config.</li>
-                    <li><strong>Google Sign-In not enabled:</strong> Firebase Console → Authentication → Sign-in method → Enable Google.</li>
-                    <li><strong>API key restrictions:</strong> Firebase Console → Project Settings → Check if API key has restrictions.</li>
-                </ol>
+        <div class="container">
+            <header>
+                <h1>Flux</h1>
+                <p class="tagline">Productivity Tracker</p>
+            </header>
+
+            <nav class="nav-tabs">
+                <button class="nav-tab active" onclick="switchTab('habits')">Habits</button>
+                <button class="nav-tab" onclick="switchTab('tasks')">Tasks</button>
+                <button class="nav-tab" onclick="switchTab('pomodoro')">Pomodoro</button>
+                <button class="nav-tab" onclick="switchTab('analytics')">Analytics</button>
+            </nav>
+
+            <!-- Habits Tab -->
+            <div id="habits-tab" class="tab-content active">
+                <div class="glass-card">
+                    <h2 class="card-title">Daily Habits</h2>
+                    <div class="input-group">
+                        <input type="text" id="habit-input" placeholder="Enter a new habit...">
+                        <button class="btn btn-primary" onclick="addHabit()">Add Habit</button>
+                    </div>
+                    <div id="habit-list" class="habit-list"></div>
+                </div>
+
+                <div class="glass-card">
+                    <h2 class="card-title">Hours Worked Today</h2>
+                    <div class="hours-section">
+                        <label for="hours-input">Hours:</label>
+                        <input type="number" id="hours-input" min="0" max="24" step="0.5" value="0">
+                        <button class="btn btn-primary" onclick="updateHours()">Update</button>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3 style="margin-bottom: 2rem; color: var(--text-secondary); font-size: 1.1rem;">Last 7 Days
+                        </h3>
+                        <div class="chart" id="hours-chart"></div>
+                        <div class="chart-labels" id="chart-labels"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Tab -->
+            <div id="tasks-tab" class="tab-content">
+                <div class="glass-card">
+                    <h2 class="card-title">Task Manager</h2>
+                    <div class="input-group">
+                        <input type="text" id="task-input" placeholder="Enter task name...">
+                        <input type="datetime-local" id="task-reminder">
+                        <button class="btn btn-primary" onclick="addTask()">Add Task</button>
+                    </div>
+                    <div id="task-list" class="task-list"></div>
+                </div>
+            </div>
+
+            <!-- Pomodoro Tab -->
+            <div id="pomodoro-tab" class="tab-content">
+                <div class="glass-card">
+                    <h2 class="card-title">Pomodoro Timer</h2>
+
+                    <div class="timer-config">
+                        <label for="timer-minutes">Minutes:</label>
+                        <input type="number" id="timer-minutes" min="1" max="120" value="25">
+                        <button class="btn btn-primary btn-small" onclick="setTimer()">Set Timer</button>
+                    </div>
+
+                    <div class="timer-display">
+                        <div class="timer-circle" id="timer-circle">
+                            <div class="timer-time" id="timer-display">25:00</div>
+                        </div>
+                        <div class="timer-controls">
+                            <button class="btn btn-primary" onclick="startTimer()">Start</button>
+                            <button class="btn btn-primary" onclick="pauseTimer()">Pause</button>
+                            <button class="btn btn-primary" onclick="resetTimer()">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="analytics-tab" class="tab-content">
+                <div class="glass-card">
+                    <h2 class="card-title">Monthly Analytics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="total-tasks-completed">0</div>
+                            <div class="stat-label">Tasks Completed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="total-hours-worked">0</div>
+                            <div class="stat-label">Hours Worked</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="habits-completion-rate">0%</div>
+                            <div class="stat-label">Habit Completion</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="active-habits">0</div>
+                            <div class="stat-label">Active Habits</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <div class="toast" id="toast"></div>
+
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously as fbSignInAnonymously, onAuthStateChanged, signOut as fbSignOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-        let auth = null;
-        let provider = null;
-
-        // Show current domain
-        document.getElementById('domain-status').textContent = window.location.origin;
-
-        // Check if Firebase SDK loaded
-        document.getElementById('sdk-status').innerHTML = '<span class="status-ok">✓ Loaded</span>';
-
-        window.initializeFirebase = function() {
-            const config = {
-                apiKey: document.getElementById('apiKey').value.trim(),
-                authDomain: document.getElementById('authDomain').value.trim(),
-                databaseURL: document.getElementById('databaseURL').value.trim(),
-                projectId: document.getElementById('projectId').value.trim(),
-                storageBucket: document.getElementById('storageBucket').value.trim(),
-                messagingSenderId: document.getElementById('messagingSenderId').value.trim(),
-                appId: document.getElementById('appId').value.trim()
-            };
-
-            // Validate config
-            const missingFields = [];
-            for (const [key, value] of Object.entries(config)) {
-                if (!value) missingFields.push(key);
-            }
-
-            if (missingFields.length > 0) {
-                showError(`Missing fields: ${missingFields.join(', ')}`);
-                document.getElementById('config-status').innerHTML = '<span class="status-error">✗ Invalid</span>';
-                return;
-            }
-
-            try {
-                // Initialize Firebase
-                const app = initializeApp(config);
-                auth = getAuth(app);
-                provider = new GoogleAuthProvider();
-
-                document.getElementById('config-status').innerHTML = '<span class="status-ok">✓ Valid</span>';
-                document.getElementById('auth-status').innerHTML = '<span class="status-ok">✓ Ready</span>';
-                document.getElementById('google-signin-btn').disabled = false;
-
-                showSuccess('Firebase initialized successfully! Now try signing in.');
-
-                // Save config to localStorage for next time
-                localStorage.setItem('firebaseConfig', JSON.stringify(config));
-
-            } catch (error) {
-                console.error('Initialization error:', error);
-                showError(`Initialization failed: ${error.message}`);
-                document.getElementById('config-status').innerHTML = '<span class="status-error">✗ Error</span>';
-                document.getElementById('auth-status').innerHTML = '<span class="status-error">✗ Failed</span>';
-            }
+        // REPLACE WITH YOUR FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyDXJMFIzBEZ4iXM6G7aJEnKZqbrAAo4BE0",
+            authDomain: "prodtrack-7877e.firebaseapp.com",
+            databaseURL: "https://prodtrack-7877e-default-rtdb.firebaseio.com",
+            projectId: "prodtrack-7877e",
+            storageBucket: "prodtrack-7877e.firebasestorage.app",
+            messagingSenderId: "495998905719",
+            appId: "1:495998905719:web:a291f4035f4aefd1b44572"
         };
 
-        window.testGoogleSignIn = async function() {
-            if (!auth || !provider) {
-                showError('Please initialize Firebase first!');
-                return;
-            }
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+        const provider = new GoogleAuthProvider();
 
-            const btn = document.getElementById('google-signin-btn');
-            btn.disabled = true;
-            btn.textContent = 'Signing in...';
+        window.currentUser = null;
 
+        window.signInWithGoogle = async function () {
             try {
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-                
-                showSuccess(`✅ Success! Signed in as: ${user.displayName || user.email}`);
-                
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 2000);
-
+                await signInWithPopup(auth, provider);
             } catch (error) {
                 console.error('Sign-in error:', error);
-                
-                let errorMessage = '';
-                switch (error.code) {
-                    case 'auth/popup-blocked':
-                        errorMessage = 'Popup was blocked by browser. Please allow popups for this site.';
-                        break;
-                    case 'auth/popup-closed-by-user':
-                        errorMessage = 'Sign-in popup was closed. Please try again.';
-                        break;
-                    case 'auth/unauthorized-domain':
-                        errorMessage = `Unauthorized domain. Go to Firebase Console → Authentication → Settings → Authorized domains, and add: ${window.location.origin}`;
-                        break;
-                    case 'auth/operation-not-allowed':
-                        errorMessage = 'Google Sign-In not enabled. Go to Firebase Console → Authentication → Sign-in method → Enable Google.';
-                        break;
-                    case 'auth/invalid-api-key':
-                        errorMessage = 'Invalid API key. Check your Firebase config.';
-                        break;
-                    default:
-                        errorMessage = `Error (${error.code}): ${error.message}`;
-                }
-                
-                showError(errorMessage);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Test Google Sign-In';
+                showToast('❌ Sign-in failed. Using guest mode instead.');
+                continueAsGuest();
             }
         };
 
-        function showError(message) {
-            const box = document.getElementById('error-box');
-            box.textContent = message;
-            box.classList.add('show');
-            document.getElementById('success-box').classList.remove('show');
-        }
+        window.continueAsGuest = function () {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
 
-        function showSuccess(message) {
-            const box = document.getElementById('success-box');
-            box.textContent = message;
-            box.classList.add('show');
-            document.getElementById('error-box').classList.remove('show');
-        }
+            const avatar = document.getElementById('user-avatar');
+            const name = document.getElementById('user-name');
+            avatar.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%236366f1"/><text x="50" y="65" text-anchor="middle" fill="white" font-size="50">👤</text></svg>';
+            name.textContent = 'Guest';
 
-        // Try to load saved config
-        const savedConfig = localStorage.getItem('firebaseConfig');
-        if (savedConfig) {
-            try {
-                const config = JSON.parse(savedConfig);
-                document.getElementById('apiKey').value = config.apiKey || '';
-                document.getElementById('authDomain').value = config.authDomain || '';
-                document.getElementById('databaseURL').value = config.databaseURL || '';
-                document.getElementById('projectId').value = config.projectId || '';
-                document.getElementById('storageBucket').value = config.storageBucket || '';
-                document.getElementById('messagingSenderId').value = config.messagingSenderId || '';
-                document.getElementById('appId').value = config.appId || '';
-                
-                // Auto-initialize if all fields present
-                if (config.apiKey && config.authDomain && config.projectId) {
-                    setTimeout(() => window.initializeFirebase(), 500);
+            init();
+            showToast('✅ Running in local mode');
+        };
+
+        window.signOut = function () {
+            if (window.currentUser) {
+                fbSignOut(auth);
+            }
+            location.reload();
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.currentUser = user;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+
+                const avatar = document.getElementById('user-avatar');
+                const name = document.getElementById('user-name');
+
+                avatar.src = user.photoURL || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%236366f1"/></svg>';
+                name.textContent = user.displayName || user.email || 'User';
+
+                init();
+
+                if (!user.isAnonymous) {
+                    const userRef = ref(database, 'users/' + user.uid);
+                    onValue(userRef, (snapshot) => {
+                        if (snapshot.exists()) {
+                            state = { ...state, ...snapshot.val() };
+                            renderHabits();
+                            renderTasks();
+                            renderHoursChart();
+                            updateAnalytics();
+                        }
+                    });
+
+                    const originalSave = window.saveState;
+                    window.saveState = async function () {
+                        originalSave();
+                        if (currentUser && !currentUser.isAnonymous) {
+                            try {
+                                await set(ref(database, 'users/' + currentUser.uid), state);
+                            } catch (error) {
+                                console.error('Sync error:', error);
+                            }
+                        }
+                    };
                 }
-            } catch (e) {
-                console.log('No saved config');
+            }
+        });
+    </script>
+
+    <script>
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        let state = {
+            habits: [],
+            tasks: [],
+            hoursData: [],
+            timerSettings: { minutes: 25 },
+            completedTasks: []
+        };
+
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let timerRunning = false;
+
+        function init() {
+            loadState();
+            renderHabits();
+            renderTasks();
+            renderHoursChart();
+            updateAnalytics();
+            initTimer();
+            checkTaskReminders();
+            setInterval(checkTaskReminders, 60000);
+            setInterval(saveState, 5000);
+        }
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('fluxProductivityData');
+                if (saved) {
+                    state = { ...state, ...JSON.parse(saved) };
+                } else {
+                    initializeHoursData();
+                }
+            } catch (error) {
+                initializeHoursData();
             }
         }
+
+        function saveState() {
+            try {
+                localStorage.setItem('fluxProductivityData', JSON.stringify(state));
+            } catch (error) {
+                console.error('Save error:', error);
+            }
+        }
+
+        function initializeHoursData() {
+            const today = new Date();
+            state.hoursData = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                state.hoursData.push({
+                    date: date.toISOString().split('T')[0],
+                    hours: 0
+                });
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+            if (tabName === 'analytics') updateAnalytics();
+        }
+
+        function addHabit() {
+            const input = document.getElementById('habit-input');
+            const habitName = input.value.trim();
+            if (!habitName) return;
+            state.habits.push({
+                id: Date.now(),
+                name: habitName,
+                completed: false,
+                lastCompleted: null
+            });
+            saveState();
+            renderHabits();
+            input.value = '';
+            showToast('✅ Habit added!');
+        }
+
+        function toggleHabit(id) {
+            const habit = state.habits.find(h => h.id === id);
+            if (habit) {
+                habit.completed = !habit.completed;
+                habit.lastCompleted = habit.completed ? new Date().toISOString() : null;
+                saveState();
+                renderHabits();
+                updateAnalytics();
+            }
+        }
+
+        function deleteHabit(id) {
+            state.habits = state.habits.filter(h => h.id !== id);
+            saveState();
+            renderHabits();
+            updateAnalytics();
+            showToast('🗑️ Habit deleted!');
+        }
+
+        function renderHabits() {
+            const container = document.getElementById('habit-list');
+            if (state.habits.length === 0) {
+                container.innerHTML = '<div class="empty-state">No habits yet. Add one to get started!</div>';
+                return;
+            }
+            container.innerHTML = state.habits.map(habit => `
+                <div class="habit-item ${habit.completed ? 'completed' : ''}">
+                    <div class="checkbox ${habit.completed ? 'checked' : ''}" onclick="toggleHabit(${habit.id})"></div>
+                    <div class="habit-name">${habit.name}</div>
+                    <button class="delete-btn" onclick="deleteHabit(${habit.id})">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        function updateHours() {
+            const input = document.getElementById('hours-input');
+            const hours = parseFloat(input.value) || 0;
+            const today = new Date().toISOString().split('T')[0];
+            const todayData = state.hoursData.find(d => d.date === today);
+            if (todayData) {
+                todayData.hours = hours;
+            } else {
+                state.hoursData.push({ date: today, hours });
+                if (state.hoursData.length > 7) state.hoursData.shift();
+            }
+            saveState();
+            renderHoursChart();
+            updateAnalytics();
+            showToast('✅ Hours updated!');
+        }
+
+        function renderHoursChart() {
+            const chartContainer = document.getElementById('hours-chart');
+            const labelsContainer = document.getElementById('chart-labels');
+            const today = new Date();
+            const last7Days = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                const dayData = state.hoursData.find(d => d.date === dateStr);
+                last7Days.push({ date: dateStr, hours: dayData ? dayData.hours : 0 });
+            }
+            const maxHours = Math.max(...last7Days.map(d => d.hours), 1);
+            chartContainer.innerHTML = last7Days.map(data => {
+                const height = (data.hours / maxHours) * 100;
+                return `<div class="chart-bar" style="height: ${height}%" data-hours="${data.hours}"></div>`;
+            }).join('');
+            labelsContainer.innerHTML = last7Days.map(data => {
+                const date = new Date(data.date);
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                return `<div class="chart-label">${dayName}</div>`;
+            }).join('');
+        }
+
+        function addTask() {
+            const nameInput = document.getElementById('task-input');
+            const reminderInput = document.getElementById('task-reminder');
+            const taskName = nameInput.value.trim();
+            if (!taskName) return;
+            state.tasks.push({
+                id: Date.now(),
+                name: taskName,
+                reminder: reminderInput.value || null,
+                completed: false,
+                createdAt: new Date().toISOString()
+            });
+            saveState();
+            renderTasks();
+            nameInput.value = '';
+            reminderInput.value = '';
+            showToast('✅ Task added!');
+        }
+
+        function toggleTask(id) {
+            const task = state.tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                if (task.completed && !state.completedTasks.includes(id)) {
+                    state.completedTasks.push(id);
+                }
+                saveState();
+                renderTasks();
+                updateAnalytics();
+            }
+        }
+
+        function deleteTask(id) {
+            state.tasks = state.tasks.filter(t => t.id !== id);
+            state.completedTasks = state.completedTasks.filter(tid => tid !== id);
+            saveState();
+            renderTasks();
+            updateAnalytics();
+            showToast('🗑️ Task deleted!');
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('task-list');
+            if (state.tasks.length === 0) {
+                container.innerHTML = '<div class="empty-state">No tasks yet. Add one to get started!</div>';
+                return;
+            }
+            container.innerHTML = state.tasks.map(task => {
+                let reminderHTML = '';
+                if (task.reminder) {
+                    const reminderDate = new Date(task.reminder);
+                    reminderHTML = `<span class="reminder-time">📅 ${reminderDate.toLocaleString()}</span>`;
+                }
+                return `
+                    <div class="task-item ${task.completed ? 'completed' : ''}">
+                        <div class="checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})"></div>
+                        <div class="task-name">${task.name}</div>
+                        ${reminderHTML}
+                        <button class="delete-btn" onclick="deleteTask(${task.id})">Delete</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function checkTaskReminders() {
+            const now = new Date();
+            state.tasks.forEach(task => {
+                if (task.reminder && !task.completed) {
+                    const reminderTime = new Date(task.reminder);
+                    const timeDiff = reminderTime - now;
+                    if (timeDiff > 0 && timeDiff < 60000) {
+                        sendNotification('Task Reminder', `Time for: ${task.name}`);
+                    }
+                }
+            });
+        }
+
+        function initTimer() {
+            timerSeconds = state.timerSettings.minutes * 60;
+            updateTimerDisplay();
+        }
+
+        function setTimer() {
+            const input = document.getElementById('timer-minutes');
+            const minutes = parseInt(input.value) || 25;
+            state.timerSettings.minutes = minutes;
+            timerSeconds = minutes * 60;
+            updateTimerDisplay();
+            if (timerRunning) pauseTimer();
+        }
+
+        function startTimer() {
+            if (timerRunning) return;
+            timerRunning = true;
+            document.getElementById('timer-circle').classList.add('active');
+            timerInterval = setInterval(() => {
+                if (timerSeconds > 0) {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                } else {
+                    pauseTimer();
+                    sendNotification('Pomodoro Complete!', 'Time for a break!');
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            timerRunning = false;
+            document.getElementById('timer-circle').classList.remove('active');
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timerSeconds = state.timerSettings.minutes * 60;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            document.getElementById('timer-display').textContent =
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function sendNotification(title, body) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(title, { body });
+            }
+        }
+
+        function updateAnalytics() {
+            const now = new Date();
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const completedThisMonth = state.completedTasks.filter(taskId => {
+                const task = state.tasks.find(t => t.id === taskId);
+                return task && new Date(task.createdAt) >= monthStart;
+            }).length;
+            document.getElementById('total-tasks-completed').textContent = completedThisMonth;
+            const totalHours = state.hoursData.filter(d => new Date(d.date) >= monthStart).reduce((sum, d) => sum + d.hours, 0);
+            document.getElementById('total-hours-worked').textContent = totalHours.toFixed(1);
+            const completedHabits = state.habits.filter(h => h.completed).length;
+            const totalHabits = state.habits.length;
+            const completionRate = totalHabits > 0 ? ((completedHabits / totalHabits) * 100).toFixed(0) : 0;
+            document.getElementById('habits-completion-rate').textContent = completionRate + '%';
+            document.getElementById('active-habits').textContent = totalHabits;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('habit-input')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addHabit();
+            });
+            document.getElementById('task-input')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addTask();
+            });
+        });
     </script>
 </body>
+
 </html>
