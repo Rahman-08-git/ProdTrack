@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flux Productivity - Debug Version</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1a1f35;
+            --glass-bg: rgba(26, 31, 53, 0.7);
+            --glass-border: rgba(99, 102, 241, 0.2);
+            --accent-primary: #6366f1;
+            --accent-secondary: #22d3ee;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --text-tertiary: #6b7280;
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.3);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(34, 211, 238, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .login-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .login-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .debug-section {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .debug-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+        }
+
+        .debug-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--glass-border);
+            font-size: 0.85rem;
+        }
+
+        .debug-item:last-child {
+            border-bottom: none;
+        }
+
+        .debug-label {
+            color: var(--text-secondary);
+        }
+
+        .debug-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .status-ok {
+            color: var(--accent-success);
+        }
+
+        .status-error {
+            color: var(--accent-danger);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 1.25rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .error-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-danger);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+            color: var(--accent-danger);
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .error-box.show {
+            display: block;
+        }
+
+        .success-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--accent-success);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+            color: var(--accent-success);
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .success-box.show {
+            display: block;
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .help-text {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: 0.5rem;
+        }
+
+        .step-by-step {
+            background: var(--bg-tertiary);
+            border-left: 3px solid var(--accent-primary);
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 0.85rem;
+        }
+
+        .step-by-step ol {
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .step-by-step li {
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-screen">
+        <div class="login-card">
+            <h1 class="login-title">FLUX</h1>
+            <p class="login-subtitle">DIAGNOSTIC MODE</p>
+
+            <div class="debug-section">
+                <h3 class="debug-title">System Check</h3>
+                <div class="debug-item">
+                    <span class="debug-label">Firebase SDK Loaded:</span>
+                    <span class="debug-value" id="sdk-status">Checking...</span>
+                </div>
+                <div class="debug-item">
+                    <span class="debug-label">Configuration Valid:</span>
+                    <span class="debug-value" id="config-status">Checking...</span>
+                </div>
+                <div class="debug-item">
+                    <span class="debug-label">Auth Initialized:</span>
+                    <span class="debug-value" id="auth-status">Checking...</span>
+                </div>
+                <div class="debug-item">
+                    <span class="debug-label">Current Domain:</span>
+                    <span class="debug-value" id="domain-status">-</span>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <h3 class="debug-title">Firebase Configuration</h3>
+                <p class="help-text">Enter your Firebase config values below:</p>
+                
+                <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 1rem;">API Key:</label>
+                <input type="text" class="config-input" id="apiKey" placeholder="AIza...">
+                
+                <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 1rem;">Auth Domain:</label>
+                <input type="text" class="config-input" id="authDomain" placeholder="your-project.firebaseapp.com">
+                
+                <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 1rem;">Database URL:</label>
+                <input type="text" class="config-input" id="databaseURL" placeholder="https://your-project-default-rtdb.firebaseio.com">
+                
+                <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 1rem;">Project ID:</label>
+                <input type="text" class="config-input" id="projectId" placeholder="your-project-id">
+                
+                <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 1rem;">Storage Bucket:</label>
+                <input type="text" class="config-input" id="storageBucket" placeholder="your-project.appspot.com">
+                
+                <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 1rem;">Messaging Sender ID:</label>
+                <input type="text" class="config-input" id="messagingSenderId" placeholder="123456789">
+                
+                <label style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 1rem;">App ID:</label>
+                <input type="text" class="config-input" id="appId" placeholder="1:123456789:web:abc123">
+
+                <button class="login-btn" onclick="initializeFirebase()" style="margin-top: 1.5rem;">
+                    Initialize Firebase
+                </button>
+            </div>
+
+            <button class="login-btn" id="google-signin-btn" onclick="testGoogleSignIn()" disabled>
+                <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Test Google Sign-In
+            </button>
+
+            <div class="error-box" id="error-box"></div>
+            <div class="success-box" id="success-box"></div>
+
+            <div class="step-by-step">
+                <strong>Common Issues & Fixes:</strong>
+                <ol>
+                    <li><strong>Unauthorized domain:</strong> Go to Firebase Console → Authentication → Settings → Authorized domains. Add your current domain (shown above).</li>
+                    <li><strong>Wrong config:</strong> Make sure you copied ALL values from Firebase Console → Project Settings → Your apps → Web app config.</li>
+                    <li><strong>Google Sign-In not enabled:</strong> Firebase Console → Authentication → Sign-in method → Enable Google.</li>
+                    <li><strong>API key restrictions:</strong> Firebase Console → Project Settings → Check if API key has restrictions.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        let auth = null;
+        let provider = null;
+
+        // Show current domain
+        document.getElementById('domain-status').textContent = window.location.origin;
+
+        // Check if Firebase SDK loaded
+        document.getElementById('sdk-status').innerHTML = '<span class="status-ok">✓ Loaded</span>';
+
+        window.initializeFirebase = function() {
+            const config = {
+                apiKey: document.getElementById('apiKey').value.trim(),
+                authDomain: document.getElementById('authDomain').value.trim(),
+                databaseURL: document.getElementById('databaseURL').value.trim(),
+                projectId: document.getElementById('projectId').value.trim(),
+                storageBucket: document.getElementById('storageBucket').value.trim(),
+                messagingSenderId: document.getElementById('messagingSenderId').value.trim(),
+                appId: document.getElementById('appId').value.trim()
+            };
+
+            // Validate config
+            const missingFields = [];
+            for (const [key, value] of Object.entries(config)) {
+                if (!value) missingFields.push(key);
+            }
+
+            if (missingFields.length > 0) {
+                showError(`Missing fields: ${missingFields.join(', ')}`);
+                document.getElementById('config-status').innerHTML = '<span class="status-error">✗ Invalid</span>';
+                return;
+            }
+
+            try {
+                // Initialize Firebase
+                const app = initializeApp(config);
+                auth = getAuth(app);
+                provider = new GoogleAuthProvider();
+
+                document.getElementById('config-status').innerHTML = '<span class="status-ok">✓ Valid</span>';
+                document.getElementById('auth-status').innerHTML = '<span class="status-ok">✓ Ready</span>';
+                document.getElementById('google-signin-btn').disabled = false;
+
+                showSuccess('Firebase initialized successfully! Now try signing in.');
+
+                // Save config to localStorage for next time
+                localStorage.setItem('firebaseConfig', JSON.stringify(config));
+
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showError(`Initialization failed: ${error.message}`);
+                document.getElementById('config-status').innerHTML = '<span class="status-error">✗ Error</span>';
+                document.getElementById('auth-status').innerHTML = '<span class="status-error">✗ Failed</span>';
+            }
+        };
+
+        window.testGoogleSignIn = async function() {
+            if (!auth || !provider) {
+                showError('Please initialize Firebase first!');
+                return;
+            }
+
+            const btn = document.getElementById('google-signin-btn');
+            btn.disabled = true;
+            btn.textContent = 'Signing in...';
+
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                
+                showSuccess(`✅ Success! Signed in as: ${user.displayName || user.email}`);
+                
+                setTimeout(() => {
+                    window.location.href = 'flux-productivity-final.html';
+                }, 2000);
+
+            } catch (error) {
+                console.error('Sign-in error:', error);
+                
+                let errorMessage = '';
+                switch (error.code) {
+                    case 'auth/popup-blocked':
+                        errorMessage = 'Popup was blocked by browser. Please allow popups for this site.';
+                        break;
+                    case 'auth/popup-closed-by-user':
+                        errorMessage = 'Sign-in popup was closed. Please try again.';
+                        break;
+                    case 'auth/unauthorized-domain':
+                        errorMessage = `Unauthorized domain. Go to Firebase Console → Authentication → Settings → Authorized domains, and add: ${window.location.origin}`;
+                        break;
+                    case 'auth/operation-not-allowed':
+                        errorMessage = 'Google Sign-In not enabled. Go to Firebase Console → Authentication → Sign-in method → Enable Google.';
+                        break;
+                    case 'auth/invalid-api-key':
+                        errorMessage = 'Invalid API key. Check your Firebase config.';
+                        break;
+                    default:
+                        errorMessage = `Error (${error.code}): ${error.message}`;
+                }
+                
+                showError(errorMessage);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Test Google Sign-In';
+            }
+        };
+
+        function showError(message) {
+            const box = document.getElementById('error-box');
+            box.textContent = message;
+            box.classList.add('show');
+            document.getElementById('success-box').classList.remove('show');
+        }
+
+        function showSuccess(message) {
+            const box = document.getElementById('success-box');
+            box.textContent = message;
+            box.classList.add('show');
+            document.getElementById('error-box').classList.remove('show');
+        }
+
+        // Try to load saved config
+        const savedConfig = localStorage.getItem('firebaseConfig');
+        if (savedConfig) {
+            try {
+                const config = JSON.parse(savedConfig);
+                document.getElementById('apiKey').value = config.apiKey || '';
+                document.getElementById('authDomain').value = config.authDomain || '';
+                document.getElementById('databaseURL').value = config.databaseURL || '';
+                document.getElementById('projectId').value = config.projectId || '';
+                document.getElementById('storageBucket').value = config.storageBucket || '';
+                document.getElementById('messagingSenderId').value = config.messagingSenderId || '';
+                document.getElementById('appId').value = config.appId || '';
+                
+                // Auto-initialize if all fields present
+                if (config.apiKey && config.authDomain && config.projectId) {
+                    setTimeout(() => window.initializeFirebase(), 500);
+                }
+            } catch (e) {
+                console.log('No saved config');
+            }
+        }
+    </script>
+</body>
+</html>
