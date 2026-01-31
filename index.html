@@ -23,11 +23,12 @@
             --text-primary: #e5e7eb;
             --text-secondary: #9ca3af;
             --text-tertiary: #6b7280;
-            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.3);
-            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --shadow-glow: none;
+            --shadow-card: 0 4px 12px rgba(0,0,0,0.35);
         }
 
         * {
+            will-change: auto;
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -77,8 +78,8 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
+            background: rgba(26, 31, 53, 0.95);
+            
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 0.75rem 1.25rem;
@@ -111,8 +112,8 @@
         }
 
         .auth-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-glow);
+            transform: none;
+            box-shadow: none;;
         }
 
         .sign-out-btn {
@@ -139,8 +140,8 @@
             top: 1rem;
             left: 1rem;
             padding: 0.75rem 1.25rem;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
+            background: rgba(26, 31, 53, 0.95);
+            
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             font-size: 0.75rem;
@@ -156,7 +157,6 @@
             height: 8px;
             border-radius: 50%;
             background: var(--accent-success);
-            animation: pulse-dot 2s ease-in-out infinite;
         }
 
         @keyframes pulse-dot {
@@ -183,8 +183,8 @@
         }
 
         .login-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
+            background: rgba(26, 31, 53, 0.95);
+            
             border: 1px solid var(--glass-border);
             border-radius: 24px;
             padding: 3rem;
@@ -284,8 +284,8 @@
             gap: 1rem;
             margin-bottom: 2rem;
             padding: 0.5rem;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
+            background: rgba(26, 31, 53, 0.95);
+            
             border-radius: 20px;
             border: 1px solid var(--glass-border);
             overflow-x: auto;
@@ -327,8 +327,8 @@
         }
 
         .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
+            background: rgba(26, 31, 53, 0.95);
+            
             border-radius: 24px;
             border: 1px solid var(--glass-border);
             padding: 2rem;
@@ -405,8 +405,8 @@
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.5);
+            transform: none;
+            box-shadow: none;
         }
 
         .btn-small {
@@ -436,7 +436,7 @@
         .task-item:hover {
             background: rgba(26, 31, 53, 0.8);
             border-color: var(--accent-primary);
-            transform: translateX(5px);
+            
         }
 
         .checkbox {
@@ -543,7 +543,7 @@
             position: absolute;
             top: -25px;
             left: 50%;
-            transform: translateX(-50%);
+            
             font-size: 0.75rem;
             color: var(--text-secondary);
             font-weight: 500;
@@ -629,8 +629,8 @@
 
         .stat-card:hover {
             border-color: var(--accent-primary);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+            transform: none;
+            box-shadow: none;
         }
 
         .stat-value {
@@ -717,9 +717,9 @@
             position: fixed;
             bottom: 2rem;
             left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
+            
+            background: rgba(26, 31, 53, 0.95);
+            
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 1rem 1.5rem;
@@ -732,7 +732,7 @@
 
         .toast.show {
             opacity: 1;
-            transform: translateX(-50%) translateY(0);
+            
         }
 
         .hidden {
@@ -744,6 +744,13 @@
                 padding: 1rem;
                 padding-top: 5rem;
             }
+
+        @media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
 
             h1 {
                 font-size: 2rem;
