@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flux Productivity</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;500&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-primary: #0a0e1a;
@@ -23,12 +20,11 @@
             --text-primary: #e5e7eb;
             --text-secondary: #9ca3af;
             --text-tertiary: #6b7280;
-            --shadow-glow: none;
-            --shadow-card: 0 4px 12px rgba(0,0,0,0.35);
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.3);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
         * {
-            will-change: auto;
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -50,7 +46,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background:
+            background: 
                 radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 80% 70%, rgba(34, 211, 238, 0.1) 0%, transparent 50%);
             pointer-events: none;
@@ -78,8 +74,8 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            background: rgba(26, 31, 53, 0.95);
-            
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 0.75rem 1.25rem;
@@ -112,8 +108,8 @@
         }
 
         .auth-btn:hover {
-            transform: none;
-            box-shadow: none;;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
         }
 
         .sign-out-btn {
@@ -140,8 +136,8 @@
             top: 1rem;
             left: 1rem;
             padding: 0.75rem 1.25rem;
-            background: rgba(26, 31, 53, 0.95);
-            
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             font-size: 0.75rem;
@@ -157,20 +153,12 @@
             height: 8px;
             border-radius: 50%;
             background: var(--accent-success);
+            animation: pulse-dot 2s ease-in-out infinite;
         }
 
         @keyframes pulse-dot {
-
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 0.5;
-                transform: scale(1.2);
-            }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
         }
 
         /* Login Screen */
@@ -183,8 +171,8 @@
         }
 
         .login-card {
-            background: rgba(26, 31, 53, 0.95);
-            
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
             padding: 3rem;
@@ -284,8 +272,8 @@
             gap: 1rem;
             margin-bottom: 2rem;
             padding: 0.5rem;
-            background: rgba(26, 31, 53, 0.95);
-            
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
             border-radius: 20px;
             border: 1px solid var(--glass-border);
             overflow-x: auto;
@@ -327,8 +315,8 @@
         }
 
         .glass-card {
-            background: rgba(26, 31, 53, 0.95);
-            
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
             border-radius: 24px;
             border: 1px solid var(--glass-border);
             padding: 2rem;
@@ -405,8 +393,8 @@
         }
 
         .btn-primary:hover {
-            transform: none;
-            box-shadow: none;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.5);
         }
 
         .btn-small {
@@ -436,7 +424,7 @@
         .task-item:hover {
             background: rgba(26, 31, 53, 0.8);
             border-color: var(--accent-primary);
-            
+            transform: translateX(5px);
         }
 
         .checkbox {
@@ -543,7 +531,7 @@
             position: absolute;
             top: -25px;
             left: 50%;
-            
+            transform: translateX(-50%);
             font-size: 0.75rem;
             color: var(--text-secondary);
             font-weight: 500;
@@ -629,8 +617,8 @@
 
         .stat-card:hover {
             border-color: var(--accent-primary);
-            transform: none;
-            box-shadow: none;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
         }
 
         .stat-value {
@@ -652,49 +640,23 @@
         }
 
         @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         @keyframes pulse {
-
-            0%,
-            100% {
-                box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.2);
-            }
-
-            50% {
-                box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5), 0 0 60px rgba(99, 102, 241, 0.5);
-            }
+            0%, 100% { box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.2); }
+            50% { box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.5), 0 0 60px rgba(99, 102, 241, 0.5); }
         }
 
         .reminder-time {
@@ -717,9 +679,9 @@
             position: fixed;
             bottom: 2rem;
             left: 50%;
-            
-            background: rgba(26, 31, 53, 0.95);
-            
+            transform: translateX(-50%) translateY(100px);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 1rem 1.5rem;
@@ -732,7 +694,7 @@
 
         .toast.show {
             opacity: 1;
-            
+            transform: translateX(-50%) translateY(0);
         }
 
         .hidden {
@@ -740,80 +702,22 @@
         }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-                padding-top: 5rem;
-            }
-
-        @media (prefers-reduced-motion: reduce) {
-    * {
-        animation: none !important;
-        transition: none !important;
-    }
-}
-
-            h1 {
-                font-size: 2rem;
-            }
-
-            .nav-tabs {
-                flex-direction: column;
-            }
-
-            .nav-tab {
-                min-width: 100%;
-            }
-
-            .glass-card {
-                padding: 1.5rem;
-            }
-
-            .timer-circle {
-                width: 220px;
-                height: 220px;
-            }
-
-            .timer-time {
-                font-size: 2.5rem;
-            }
-
-            .input-group {
-                flex-direction: column;
-            }
-
-            input[type="text"],
-            input[type="number"],
-            input[type="datetime-local"] {
-                min-width: 100%;
-            }
-
-            .sync-status {
-                top: auto;
-                bottom: 1rem;
-                left: 1rem;
-                font-size: 0.65rem;
-                padding: 0.5rem 1rem;
-            }
-
-            .auth-section {
-                top: auto;
-                bottom: 1rem;
-                right: 1rem;
-            }
-
-            .user-info {
-                font-size: 0.65rem;
-                padding: 0.5rem 1rem;
-            }
-
-            .user-avatar {
-                width: 24px;
-                height: 24px;
-            }
+            .container { padding: 1rem; padding-top: 5rem; }
+            h1 { font-size: 2rem; }
+            .nav-tabs { flex-direction: column; }
+            .nav-tab { min-width: 100%; }
+            .glass-card { padding: 1.5rem; }
+            .timer-circle { width: 220px; height: 220px; }
+            .timer-time { font-size: 2.5rem; }
+            .input-group { flex-direction: column; }
+            input[type="text"], input[type="number"], input[type="datetime-local"] { min-width: 100%; }
+            .sync-status { top: auto; bottom: 1rem; left: 1rem; font-size: 0.65rem; padding: 0.5rem 1rem; }
+            .auth-section { top: auto; bottom: 1rem; right: 1rem; }
+            .user-info { font-size: 0.65rem; padding: 0.5rem 1rem; }
+            .user-avatar { width: 24px; height: 24px; }
         }
     </style>
 </head>
-
 <body>
     <!-- Login Screen -->
     <div id="login-screen" class="login-screen">
@@ -822,16 +726,7 @@
             <p class="login-subtitle">Productivity Tracker</p>
             <div class="login-options">
                 <button class="login-btn" onclick="signInWithGoogle()">
-                    <svg width="20" height="20" viewBox="0 0 24 24">
-                        <path fill="#4285F4"
-                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                        <path fill="#34A853"
-                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                        <path fill="#FBBC05"
-                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                        <path fill="#EA4335"
-                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                    </svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                     Sign in with Google
                 </button>
                 <button class="login-btn guest" onclick="continueAsGuest()">
@@ -893,8 +788,7 @@
                     </div>
 
                     <div class="chart-container">
-                        <h3 style="margin-bottom: 2rem; color: var(--text-secondary); font-size: 1.1rem;">Last 7 Days
-                        </h3>
+                        <h3 style="margin-bottom: 2rem; color: var(--text-secondary); font-size: 1.1rem;">Last 7 Days</h3>
                         <div class="chart" id="hours-chart"></div>
                         <div class="chart-labels" id="chart-labels"></div>
                     </div>
@@ -918,7 +812,7 @@
             <div id="pomodoro-tab" class="tab-content">
                 <div class="glass-card">
                     <h2 class="card-title">Pomodoro Timer</h2>
-
+                    
                     <div class="timer-config">
                         <label for="timer-minutes">Minutes:</label>
                         <input type="number" id="timer-minutes" min="1" max="120" value="25">
@@ -974,13 +868,13 @@
 
         // REPLACE WITH YOUR FIREBASE CONFIG
         const firebaseConfig = {
-            apiKey: "AIzaSyDXJMFIzBEZ4iXM6G7aJEnKZqbrAAo4BE0",
-            authDomain: "prodtrack-7877e.firebaseapp.com",
-            databaseURL: "https://prodtrack-7877e-default-rtdb.firebaseio.com",
-            projectId: "prodtrack-7877e",
-            storageBucket: "prodtrack-7877e.firebasestorage.app",
-            messagingSenderId: "495998905719",
-            appId: "1:495998905719:web:a291f4035f4aefd1b44572"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -990,7 +884,7 @@
 
         window.currentUser = null;
 
-        window.signInWithGoogle = async function () {
+        window.signInWithGoogle = async function() {
             try {
                 await signInWithPopup(auth, provider);
             } catch (error) {
@@ -1000,20 +894,20 @@
             }
         };
 
-        window.continueAsGuest = function () {
+        window.continueAsGuest = function() {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
-
+            
             const avatar = document.getElementById('user-avatar');
             const name = document.getElementById('user-name');
             avatar.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%236366f1"/><text x="50" y="65" text-anchor="middle" fill="white" font-size="50">👤</text></svg>';
             name.textContent = 'Guest';
-
+            
             init();
             showToast('✅ Running in local mode');
         };
 
-        window.signOut = function () {
+        window.signOut = function() {
             if (window.currentUser) {
                 fbSignOut(auth);
             }
@@ -1025,15 +919,15 @@
                 window.currentUser = user;
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
-
+                
                 const avatar = document.getElementById('user-avatar');
                 const name = document.getElementById('user-name');
-
+                
                 avatar.src = user.photoURL || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%236366f1"/></svg>';
                 name.textContent = user.displayName || user.email || 'User';
-
+                
                 init();
-
+                
                 if (!user.isAnonymous) {
                     const userRef = ref(database, 'users/' + user.uid);
                     onValue(userRef, (snapshot) => {
@@ -1045,9 +939,9 @@
                             updateAnalytics();
                         }
                     });
-
+                    
                     const originalSave = window.saveState;
-                    window.saveState = async function () {
+                    window.saveState = async function() {
                         originalSave();
                         if (currentUser && !currentUser.isAnonymous) {
                             try {
@@ -1076,7 +970,7 @@
         };
 
         let timerInterval = null;
-        let timerSeconds = 0;
+        let timerEndTime = null;
         let timerRunning = false;
 
         function init() {
@@ -1308,37 +1202,48 @@
             });
         }
 
+        // FIXED TIMER - Uses timestamp-based calculation to prevent drift
         function initTimer() {
-            timerSeconds = state.timerSettings.minutes * 60;
-            updateTimerDisplay();
+            const minutes = state.timerSettings.minutes;
+            updateTimerDisplay(minutes * 60);
         }
 
         function setTimer() {
             const input = document.getElementById('timer-minutes');
             const minutes = parseInt(input.value) || 25;
             state.timerSettings.minutes = minutes;
-            timerSeconds = minutes * 60;
-            updateTimerDisplay();
+            updateTimerDisplay(minutes * 60);
             if (timerRunning) pauseTimer();
         }
 
         function startTimer() {
             if (timerRunning) return;
+            
             timerRunning = true;
+            const minutes = state.timerSettings.minutes;
+            timerEndTime = Date.now() + (minutes * 60 * 1000);
+            
             document.getElementById('timer-circle').classList.add('active');
+            
             timerInterval = setInterval(() => {
-                if (timerSeconds > 0) {
-                    timerSeconds--;
-                    updateTimerDisplay();
-                } else {
+                const now = Date.now();
+                const remainingMs = timerEndTime - now;
+                
+                if (remainingMs <= 0) {
                     pauseTimer();
+                    updateTimerDisplay(0);
                     sendNotification('Pomodoro Complete!', 'Time for a break!');
+                    showToast('⏰ Pomodoro Complete!');
+                } else {
+                    const remainingSeconds = Math.ceil(remainingMs / 1000);
+                    updateTimerDisplay(remainingSeconds);
                 }
-            }, 1000);
+            }, 100); // Update every 100ms for smooth countdown
         }
 
         function pauseTimer() {
             timerRunning = false;
+            timerEndTime = null;
             document.getElementById('timer-circle').classList.remove('active');
             if (timerInterval) {
                 clearInterval(timerInterval);
@@ -1348,14 +1253,14 @@
 
         function resetTimer() {
             pauseTimer();
-            timerSeconds = state.timerSettings.minutes * 60;
-            updateTimerDisplay();
+            const minutes = state.timerSettings.minutes;
+            updateTimerDisplay(minutes * 60);
         }
 
-        function updateTimerDisplay() {
-            const minutes = Math.floor(timerSeconds / 60);
-            const seconds = timerSeconds % 60;
-            document.getElementById('timer-display').textContent =
+        function updateTimerDisplay(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            document.getElementById('timer-display').textContent = 
                 `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
@@ -1392,5 +1297,4 @@
         });
     </script>
 </body>
-
 </html>
