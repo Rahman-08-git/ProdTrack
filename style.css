@@ -532,8 +532,8 @@ body {
   color: var(--text-secondary);
 }
 
-.manual-entry-inputs input {
-  width: 70px;
+.manual-entry-inputs input[type="number"],
+.manual-entry-inputs input[type="date"] {
   padding: 7px 10px;
   background: var(--bg-input);
   border: 1px solid var(--border);
@@ -542,6 +542,11 @@ body {
   font-size: 13px;
   text-align: center;
   font-family: inherit;
+  color-scheme: dark;
+}
+
+.manual-entry-inputs input[type="number"] {
+  width: 70px;
 }
 
 .manual-entry-inputs input:focus {

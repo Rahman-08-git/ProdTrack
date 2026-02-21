@@ -267,6 +267,10 @@ function handleTasksChange(updatedTasks) {
 // ===== Manual Time Entry =====
 function setupManualEntry() {
     const logBtn = document.getElementById('manual-log-btn');
+    const dateInput = document.getElementById('manual-date');
+
+    // Default to today
+    dateInput.value = getTodayStr();
 
     logBtn.addEventListener('click', () => {
         const hours = parseInt(document.getElementById('manual-hours').value, 10) || 0;
@@ -278,13 +282,15 @@ function setupManualEntry() {
             return;
         }
 
+        const selectedDate = dateInput.value || getTodayStr();
+
         const select = document.getElementById('manual-task-select');
         const selectedOption = select.options[select.selectedIndex];
         const taskId = select.value || null;
         const taskText = taskId ? selectedOption.textContent : null;
 
         const session = {
-            date: getTodayStr(),
+            date: selectedDate,
             duration: totalSeconds,
             type: 'manual',
             timestamp: Date.now(),
@@ -301,10 +307,13 @@ function setupManualEntry() {
         // Reset inputs
         document.getElementById('manual-hours').value = 0;
         document.getElementById('manual-minutes').value = 0;
+        dateInput.value = getTodayStr();
         select.selectedIndex = 0;
 
+        const isToday = selectedDate === getTodayStr();
+        const dateNote = isToday ? '' : ` for ${selectedDate}`;
         const taskNote = taskText ? ` on "${taskText}"` : '';
-        showToast(`Logged ${hours}h ${minutes}m${taskNote}`, 'success');
+        showToast(`Logged ${hours}h ${minutes}m${taskNote}${dateNote}`, 'success');
     });
 }
 
