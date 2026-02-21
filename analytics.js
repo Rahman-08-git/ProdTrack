@@ -100,6 +100,9 @@ function renderTaskAnalytics() {
 }
 
 // ===== Bar Chart =====
+let chartBars = []; // stored for hover detection
+let chartListenersAttached = false;
+
 function renderChart() {
     const canvas = document.getElementById('hours-chart');
     const ctx = canvas.getContext('2d');
@@ -125,7 +128,7 @@ function renderChart() {
         const dateStr = getDateStr(date);
         const seconds = getSecondsForDate(sessions, dateStr);
         const hours = seconds / 3600;
-        data.push({ day, hours, seconds });
+        data.push({ day, hours, seconds, dateStr });
         if (hours > maxHours) maxHours = hours;
     }
 
@@ -157,12 +160,16 @@ function renderChart() {
         ctx.fillText(`${((i / ySteps) * yMax).toFixed(0)}h`, padLeft - 6, y + 4);
     }
 
-    // Draw bars
+    // Draw bars and store positions
+    chartBars = [];
     ctx.textAlign = 'center';
     data.forEach((d, i) => {
         const x = padLeft + gap + i * (barW + gap);
         const barH = yMax > 0 ? (d.hours / yMax) * chartH : 0;
         const y = padTop + chartH - barH;
+
+        // Store bar rect for hover detection
+        chartBars.push({ x, y, w: barW, h: barH, day: d.day, seconds: d.seconds, hours: d.hours, dateStr: d.dateStr });
 
         // B&W gradient bar
         const gradient = ctx.createLinearGradient(x, y, x, padTop + chartH);
@@ -189,6 +196,146 @@ function renderChart() {
             ctx.fillText(d.day.toString(), x + barW / 2, H - padBottom + 16);
         }
     });
+
+    // Attach hover listeners once
+    if (!chartListenersAttached) {
+        chartListenersAttached = true;
+
+        canvas.addEventListener('mousemove', (e) => {
+            const canvasRect = canvas.getBoundingClientRect();
+            const mx = e.clientX - canvasRect.left;
+            const my = e.clientY - canvasRect.top;
+
+            const hoveredBar = chartBars.find(b =>
+                mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h && b.h > 0
+            );
+
+            // Expand hit zone to full column height for better UX
+            const hitBar = hoveredBar || chartBars.find(b =>
+                mx >= b.x && mx <= b.x + b.w && b.seconds > 0
+            );
+
+            if (hitBar) {
+                canvas.style.cursor = 'pointer';
+                drawChartWithTooltip(hitBar, mx, my);
+            } else {
+                canvas.style.cursor = 'default';
+                renderChart();
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            canvas.style.cursor = 'default';
+            // Don't re-render here to avoid flash loops
+        });
+    }
+}
+
+function drawChartWithTooltip(bar, mx, my) {
+    const canvas = document.getElementById('hours-chart');
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.width / dpr;
+    const H = canvas.height / dpr;
+
+    // Redraw chart base (without re-attaching listeners)
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.scale(dpr, dpr);
+
+    const daysInMonth = chartBars.length;
+    const padLeft = 40;
+    const padRight = 16;
+    const padTop = 16;
+    const padBottom = 32;
+    const chartH = H - padTop - padBottom;
+
+    let maxHours = 0;
+    chartBars.forEach(b => { if (b.hours > maxHours) maxHours = b.hours; });
+    const yMax = maxHours > 0 ? Math.ceil(maxHours) : 4;
+    const ySteps = Math.min(yMax, 5);
+
+    // Y-axis grid
+    ctx.strokeStyle = '#222222';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = '#666666';
+    ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= ySteps; i++) {
+        const y = padTop + chartH - (i / ySteps) * chartH;
+        ctx.beginPath();
+        ctx.moveTo(padLeft, y);
+        ctx.lineTo(W - padRight, y);
+        ctx.stroke();
+        ctx.fillText(`${((i / ySteps) * yMax).toFixed(0)}h`, padLeft - 6, y + 4);
+    }
+
+    // Draw bars
+    ctx.textAlign = 'center';
+    chartBars.forEach((d) => {
+        const isHovered = d === bar;
+        const gradient = ctx.createLinearGradient(d.x, d.y, d.x, padTop + chartH);
+        if (isHovered) {
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(1, '#aaaaaa');
+        } else {
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(1, '#666666');
+        }
+        ctx.fillStyle = d.h > 0 ? gradient : 'transparent';
+
+        if (d.h > 0) {
+            const r = Math.min(2, d.h / 2);
+            ctx.beginPath();
+            ctx.moveTo(d.x, d.y + r);
+            ctx.arcTo(d.x, d.y, d.x + d.w, d.y, r);
+            ctx.arcTo(d.x + d.w, d.y, d.x + d.w, d.y + d.h, r);
+            ctx.lineTo(d.x + d.w, padTop + chartH);
+            ctx.lineTo(d.x, padTop + chartH);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        if (daysInMonth <= 15 || d.day % 2 === 1) {
+            ctx.fillStyle = '#666666';
+            ctx.fillText(d.day.toString(), d.x + d.w / 2, H - padBottom + 16);
+        }
+    });
+
+    // Draw tooltip
+    const label = `${getMonthName(selectedMonth).slice(0, 3)} ${bar.day}: ${formatHoursMinutes(bar.seconds)}`;
+    ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
+    const metrics = ctx.measureText(label);
+    const tipW = metrics.width + 16;
+    const tipH = 26;
+
+    // Position tooltip above the bar, centered on bar
+    let tipX = bar.x + bar.w / 2 - tipW / 2;
+    let tipY = bar.y - tipH - 8;
+    if (tipY < 4) tipY = bar.y + bar.h + 8;
+    if (tipX < 4) tipX = 4;
+    if (tipX + tipW > W - 4) tipX = W - tipW - 4;
+
+    // Tooltip background
+    ctx.fillStyle = '#1c1f2e';
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 1;
+    const tr = 4;
+    ctx.beginPath();
+    ctx.moveTo(tipX + tr, tipY);
+    ctx.lineTo(tipX + tipW - tr, tipY);
+    ctx.arcTo(tipX + tipW, tipY, tipX + tipW, tipY + tipH, tr);
+    ctx.arcTo(tipX + tipW, tipY + tipH, tipX, tipY + tipH, tr);
+    ctx.arcTo(tipX, tipY + tipH, tipX, tipY, tr);
+    ctx.arcTo(tipX, tipY, tipX + tipW, tipY, tr);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Tooltip text
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, tipX + tipW / 2, tipY + tipH / 2 + 4);
 }
 
 // ===== Task History Table =====
