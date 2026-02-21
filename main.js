@@ -17,6 +17,7 @@ function init() {
     setupRouting();
     setupSync();
     setupTaskSelectModal();
+    setupManualEntry();
     setupAuth();
 
     // Init timer with task-selection callback
@@ -40,6 +41,9 @@ function init() {
 
     // Update stats
     updateStats();
+
+    // Populate manual entry task dropdown
+    refreshManualTaskDropdown();
 }
 
 // ===== Auth =====
@@ -257,6 +261,66 @@ function handleTasksChange(updatedTasks) {
     data.tasks = updatedTasks;
     save();
     updateAnalytics(data.sessions, data.tasks);
+    refreshManualTaskDropdown();
+}
+
+// ===== Manual Time Entry =====
+function setupManualEntry() {
+    const logBtn = document.getElementById('manual-log-btn');
+
+    logBtn.addEventListener('click', () => {
+        const hours = parseInt(document.getElementById('manual-hours').value, 10) || 0;
+        const minutes = parseInt(document.getElementById('manual-minutes').value, 10) || 0;
+        const totalSeconds = (hours * 3600) + (minutes * 60);
+
+        if (totalSeconds <= 0) {
+            showToast('Enter at least 1 minute.', 'error');
+            return;
+        }
+
+        const select = document.getElementById('manual-task-select');
+        const selectedOption = select.options[select.selectedIndex];
+        const taskId = select.value || null;
+        const taskText = taskId ? selectedOption.textContent : null;
+
+        const session = {
+            date: getTodayStr(),
+            duration: totalSeconds,
+            type: 'manual',
+            timestamp: Date.now(),
+            taskId: taskId,
+            taskText: taskText
+        };
+
+        data.sessions.push(session);
+        save();
+        updateStats();
+        updateHeatmap(data.sessions);
+        updateAnalytics(data.sessions, data.tasks);
+
+        // Reset inputs
+        document.getElementById('manual-hours').value = 0;
+        document.getElementById('manual-minutes').value = 0;
+        select.selectedIndex = 0;
+
+        const taskNote = taskText ? ` on "${taskText}"` : '';
+        showToast(`Logged ${hours}h ${minutes}m${taskNote}`, 'success');
+    });
+}
+
+function refreshManualTaskDropdown() {
+    const select = document.getElementById('manual-task-select');
+    const today = getTodayStr();
+    const todayTasks = data.tasks[today] || [];
+
+    // Keep the "No task" option, rebuild the rest
+    select.innerHTML = '<option value="">No task</option>';
+    todayTasks.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = t.text;
+        select.appendChild(opt);
+    });
 }
 
 // ===== Stats =====

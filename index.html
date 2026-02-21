@@ -145,6 +145,34 @@
           </div>
         </div>
 
+        <!-- Manual Time Entry -->
+        <div class="card manual-entry-card">
+          <div class="card-header">
+            <h2>Log Worked Time</h2>
+          </div>
+          <div class="manual-entry-row">
+            <div class="manual-entry-inputs">
+              <label>
+                <span>Hours</span>
+                <input type="number" id="manual-hours" value="0" min="0" max="23" />
+              </label>
+              <label>
+                <span>Minutes</span>
+                <input type="number" id="manual-minutes" value="0" min="0" max="59" />
+              </label>
+            </div>
+            <div class="manual-entry-task">
+              <label>
+                <span>Task (optional)</span>
+                <select id="manual-task-select">
+                  <option value="">No task</option>
+                </select>
+              </label>
+            </div>
+            <button class="btn btn-primary" id="manual-log-btn">Log Time</button>
+          </div>
+        </div>
+
         <!-- Heatmap Section -->
         <div class="card heatmap-card">
           <div class="card-header">

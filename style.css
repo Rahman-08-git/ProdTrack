@@ -506,6 +506,67 @@ body {
   opacity: 1;
 }
 
+/* ===== Manual Time Entry ===== */
+.manual-entry-card {
+  margin-bottom: 24px;
+}
+
+.manual-entry-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.manual-entry-inputs {
+  display: flex;
+  gap: 10px;
+}
+
+.manual-entry-inputs label,
+.manual-entry-task label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.manual-entry-inputs input {
+  width: 70px;
+  padding: 7px 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  text-align: center;
+  font-family: inherit;
+}
+
+.manual-entry-inputs input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.manual-entry-task select {
+  padding: 7px 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  min-width: 140px;
+  cursor: pointer;
+  color-scheme: dark;
+}
+
+.manual-entry-task select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 /* ===== Heatmap ===== */
 .heatmap-card {
   margin-bottom: 24px;
