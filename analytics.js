@@ -6,11 +6,13 @@ let sessions = [];
 let tasks = {};
 let selectedYear, selectedMonth;
 let onSessionChangeCb = null;
+let onTaskChangeCb = null;
 
-export function initAnalytics(sessionData, taskData, onSessionChange) {
+export function initAnalytics(sessionData, taskData, onSessionChange, onTaskChange) {
     sessions = sessionData;
     tasks = taskData;
     onSessionChangeCb = onSessionChange || null;
+    onTaskChangeCb = onTaskChange || null;
 
     const now = new Date();
     selectedYear = now.getFullYear();
@@ -357,11 +359,12 @@ function renderTaskTable() {
 
         const completedTasks = dayTasks.filter(t => t.done);
         const incompleteTasks = dayTasks.filter(t => !t.done);
+        const sorted = [...completedTasks, ...incompleteTasks];
 
-        const taskPills = [
-            ...completedTasks.map(t => `<span class="task-pill">${escapeHtml(t.text)}</span>`),
-            ...incompleteTasks.map(t => `<span class="task-pill incomplete">${escapeHtml(t.text)}</span>`)
-        ].join('') || '<span style="color: var(--text-muted)">—</span>';
+        const taskPills = sorted.map(t => {
+            const cls = t.done ? 'task-pill editable' : 'task-pill incomplete editable';
+            return `<span class="${cls}" data-date="${dateStr}" data-id="${t.id}" title="Click to toggle · Right-click to delete">${escapeHtml(t.text)}</span>`;
+        }).join('') || '<span style="color: var(--text-muted)">—</span>';
 
         const displayDate = `${getMonthName(selectedMonth).slice(0, 3)} ${day}, ${selectedYear}`;
 
@@ -379,6 +382,33 @@ function renderTaskTable() {
     } else {
         tbody.innerHTML = rows.join('');
     }
+
+    // Attach click handlers to editable pills
+    tbody.querySelectorAll('.task-pill.editable').forEach(pill => {
+        // Left click: toggle done/undone
+        pill.addEventListener('click', () => {
+            const dateStr = pill.dataset.date;
+            const taskId = pill.dataset.id;
+            const dayTasks = tasks[dateStr] || [];
+            const task = dayTasks.find(t => t.id === taskId);
+            if (task) {
+                task.done = !task.done;
+                if (onTaskChangeCb) onTaskChangeCb();
+                render();
+            }
+        });
+
+        // Right click: delete task
+        pill.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const dateStr = pill.dataset.date;
+            const taskId = pill.dataset.id;
+            if (!tasks[dateStr]) return;
+            tasks[dateStr] = tasks[dateStr].filter(t => t.id !== taskId);
+            if (onTaskChangeCb) onTaskChangeCb();
+            render();
+        });
+    });
 }
 
 // ===== Session Log =====

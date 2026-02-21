@@ -835,6 +835,24 @@ body {
   color: var(--text-muted);
 }
 
+.task-pill.editable {
+  cursor: pointer;
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+.task-pill.editable:hover {
+  opacity: 0.75;
+  transform: scale(0.97);
+}
+
+.task-pill.editable:not(.incomplete) {
+  text-decoration: line-through;
+}
+
+.task-pill.editable.incomplete {
+  text-decoration: none;
+}
+
 /* ===== Session Log ===== */
 .session-log-hint {
   font-size: 12px;

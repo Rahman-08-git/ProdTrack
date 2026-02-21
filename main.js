@@ -36,8 +36,8 @@ function init() {
     // Init heatmap
     initHeatmap(data.sessions);
 
-    // Init analytics with session change callback
-    initAnalytics(data.sessions, data.tasks, handleSessionChange);
+    // Init analytics with session and task change callbacks
+    initAnalytics(data.sessions, data.tasks, handleSessionChange, handleAnalyticsTaskChange);
 
     // Update stats
     updateStats();
@@ -262,6 +262,13 @@ function handleSessionChange(action, idx) {
     save();
     updateStats();
     updateHeatmap(data.sessions);
+}
+
+// ===== Task Change Handler (toggle/delete from analytics) =====
+function handleAnalyticsTaskChange() {
+    // tasks object is already mutated by analytics.js
+    save();
+    setTasks(data.tasks); // refresh home tab task list
 }
 
 // ===== Tasks Change Handler =====
