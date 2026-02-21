@@ -10,12 +10,12 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChang
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: ""
+    apiKey: "AIzaSyDWNQKGBbD0SLbEfsNEqdJV5hfGW4dkSdI",
+    authDomain: "prodtrack-57e6f.firebaseapp.com",
+    projectId: "prodtrack-57e6f",
+    storageBucket: "prodtrack-57e6f.firebasestorage.app",
+    messagingSenderId: "495598159834",
+    appId: "1:495598159834:web:cda80ff294e9724f90a2e3"
 };
 
 let app = null;
