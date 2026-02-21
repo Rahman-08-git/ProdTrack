@@ -6,15 +6,18 @@ import { initTimer, startWithTask, getTimerState } from './timer.js';
 import { initTasks, getTasks, setTasks } from './tasks.js';
 import { initHeatmap, updateHeatmap } from './heatmap.js';
 import { initAnalytics, updateAnalytics } from './analytics.js';
+import { initFirebase, isFirebaseConfigured, onAuthChange, signInWithGoogle, signOutUser, getCurrentUser, saveToCloud, loadFromCloud } from './firebase.js';
 
 // ===== App State =====
 let data = loadData();
+let cloudSyncTimeout = null;
 
 // ===== Initialize =====
 function init() {
     setupRouting();
     setupSync();
     setupTaskSelectModal();
+    setupAuth();
 
     // Init timer with task-selection callback
     initTimer({
@@ -37,6 +40,113 @@ function init() {
 
     // Update stats
     updateStats();
+}
+
+// ===== Auth =====
+function setupAuth() {
+    const configured = initFirebase();
+
+    const loginBtn = document.getElementById('auth-login-btn');
+    const logoutBtn = document.getElementById('auth-logout-btn');
+    const userInfo = document.getElementById('auth-user-info');
+
+    if (!configured) {
+        // Firebase not configured — hide auth UI
+        loginBtn.style.display = 'none';
+        return;
+    }
+
+    loginBtn.addEventListener('click', async () => {
+        try {
+            await signInWithGoogle();
+        } catch (e) {
+            showToast('Sign-in failed. Try again.', 'error');
+        }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+        await signOutUser();
+        showToast('Signed out', 'success');
+    });
+
+    // Listen for auth state changes
+    onAuthChange(async (user) => {
+        if (user) {
+            // Signed in
+            loginBtn.style.display = 'none';
+            userInfo.style.display = 'block';
+            document.getElementById('auth-avatar').src = user.photoURL || '';
+            document.getElementById('auth-name').textContent = user.displayName || user.email || 'User';
+
+            // Load from cloud and merge with local
+            try {
+                const cloudData = await loadFromCloud(user.uid);
+                if (cloudData) {
+                    data = mergeData(data, cloudData);
+                    saveData(data);
+                    refreshAll();
+                    showToast('Synced from cloud ☁️', 'success');
+                } else {
+                    // First time: push local data to cloud
+                    await saveToCloud(user.uid, data);
+                    showToast('Data saved to cloud ☁️', 'success');
+                }
+            } catch (e) {
+                console.error('Cloud sync error:', e);
+            }
+        } else {
+            // Signed out
+            loginBtn.style.display = 'flex';
+            userInfo.style.display = 'none';
+        }
+    });
+}
+
+// Merge local + cloud data (union of tasks and sessions)
+function mergeData(local, cloud) {
+    const mergedTasks = { ...local.tasks };
+    for (const date of Object.keys(cloud.tasks || {})) {
+        if (!mergedTasks[date]) {
+            mergedTasks[date] = cloud.tasks[date];
+        } else {
+            const existingIds = new Set(mergedTasks[date].map(t => t.id));
+            for (const task of cloud.tasks[date]) {
+                if (!existingIds.has(task.id)) {
+                    mergedTasks[date].push(task);
+                }
+            }
+        }
+    }
+
+    const existingTimestamps = new Set(local.sessions.map(s => s.timestamp));
+    const mergedSessions = [...local.sessions];
+    for (const session of (cloud.sessions || [])) {
+        if (!existingTimestamps.has(session.timestamp)) {
+            mergedSessions.push(session);
+        }
+    }
+
+    return {
+        tasks: mergedTasks,
+        sessions: mergedSessions,
+        settings: { ...local.settings, ...(cloud.settings || {}) }
+    };
+}
+
+// Schedule a debounced cloud save (avoids hammering Firestore on every keystroke)
+function scheduleCloudSync() {
+    if (!isFirebaseConfigured()) return;
+    const user = getCurrentUser();
+    if (!user) return;
+
+    clearTimeout(cloudSyncTimeout);
+    cloudSyncTimeout = setTimeout(async () => {
+        try {
+            await saveToCloud(user.uid, data);
+        } catch (e) {
+            console.error('Cloud sync failed:', e);
+        }
+    }, 2000); // 2s debounce
 }
 
 // ===== Routing =====
@@ -72,14 +182,12 @@ function setupTaskSelectModal() {
         if (e.target === modal) modal.classList.remove('show');
     });
 
-    // "No task" button — start without linking
     noneBtn.addEventListener('click', () => {
         modal.classList.remove('show');
         selectedTaskForTimer = null;
         startWithTask(null, null);
     });
 
-    // Confirm with selected task
     confirmBtn.addEventListener('click', () => {
         modal.classList.remove('show');
         if (selectedTaskForTimer) {
@@ -101,7 +209,6 @@ function showTaskSelectModal() {
     if (todayTasks.length === 0) {
         list.innerHTML = '<li class="task-select-none">No tasks added today. You can start without a task.</li>';
     } else {
-        // Show incomplete tasks first, then completed
         const incomplete = todayTasks.filter(t => !t.done);
         const complete = todayTasks.filter(t => t.done);
         const sorted = [...incomplete, ...complete];
@@ -181,6 +288,14 @@ function updateStatsWithLive(timerState) {
     document.getElementById('stat-lifetime').textContent = formatHoursMinutes(totalSeconds);
 }
 
+// Refresh all UI components with current data
+function refreshAll() {
+    setTasks(data.tasks);
+    updateStats();
+    updateHeatmap(data.sessions);
+    updateAnalytics(data.sessions, data.tasks);
+}
+
 // ===== Sync =====
 function setupSync() {
     const modal = document.getElementById('sync-modal');
@@ -210,10 +325,8 @@ function setupSync() {
 
         try {
             data = await importData(file);
-            setTasks(data.tasks);
-            updateStats();
-            updateHeatmap(data.sessions);
-            updateAnalytics(data.sessions, data.tasks);
+            refreshAll();
+            scheduleCloudSync();
             showToast('Data imported and merged!', 'success');
             modal.classList.remove('show');
         } catch (err) {
@@ -224,9 +337,10 @@ function setupSync() {
     });
 }
 
-// ===== Save =====
+// ===== Save (local + cloud) =====
 function save() {
     saveData(data);
+    scheduleCloudSync();
 }
 
 // ===== Pomodoro duration =====
