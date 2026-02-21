@@ -36,8 +36,8 @@ function init() {
     // Init heatmap
     initHeatmap(data.sessions);
 
-    // Init analytics
-    initAnalytics(data.sessions, data.tasks);
+    // Init analytics with session change callback
+    initAnalytics(data.sessions, data.tasks, handleSessionChange);
 
     // Update stats
     updateStats();
@@ -254,6 +254,14 @@ function handleSessionComplete(session) {
 // ===== Timer Tick Handler =====
 function handleTimerTick(timerState) {
     updateStatsWithLive(timerState);
+}
+
+// ===== Session Change Handler (edit/delete from analytics) =====
+function handleSessionChange(action, idx) {
+    // sessions array is already mutated by analytics.js
+    save();
+    updateStats();
+    updateHeatmap(data.sessions);
 }
 
 // ===== Tasks Change Handler =====

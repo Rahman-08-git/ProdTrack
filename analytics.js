@@ -5,10 +5,12 @@ let chart = null;
 let sessions = [];
 let tasks = {};
 let selectedYear, selectedMonth;
+let onSessionChangeCb = null;
 
-export function initAnalytics(sessionData, taskData) {
+export function initAnalytics(sessionData, taskData, onSessionChange) {
     sessions = sessionData;
     tasks = taskData;
+    onSessionChangeCb = onSessionChange || null;
 
     const now = new Date();
     selectedYear = now.getFullYear();
@@ -36,6 +38,7 @@ function render() {
     renderTaskAnalytics();
     renderChart();
     renderTaskTable();
+    renderSessionLog();
 }
 
 // ===== Per-Task Time Analytics =====
@@ -376,6 +379,99 @@ function renderTaskTable() {
     } else {
         tbody.innerHTML = rows.join('');
     }
+}
+
+// ===== Session Log =====
+function renderSessionLog() {
+    const tbody = document.getElementById('session-log-body');
+    const monthPrefix = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
+
+    // Filter sessions for the selected month, sorted newest first
+    const monthSessions = sessions
+        .map((s, i) => ({ ...s, _index: i }))
+        .filter(s => s.date && s.date.startsWith(monthPrefix))
+        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+    if (monthSessions.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No sessions for ${getMonthName(selectedMonth)} ${selectedYear}</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = monthSessions.map(s => {
+        const h = Math.floor((s.duration || 0) / 3600);
+        const m = Math.floor(((s.duration || 0) % 3600) / 60);
+        const type = s.type === 'manual' ? 'Manual' : s.type === 'stopwatch' ? 'Stopwatch' : 'Pomodoro';
+        const taskLabel = s.taskText ? escapeHtml(s.taskText) : '<span style="color:var(--text-muted)">—</span>';
+
+        return `
+      <tr data-session-idx="${s._index}">
+        <td>${s.date}</td>
+        <td>${formatHoursMinutes(s.duration || 0)}</td>
+        <td>${type}</td>
+        <td>${taskLabel}</td>
+        <td>
+          <div class="session-actions">
+            <button class="btn-edit" data-idx="${s._index}" data-h="${h}" data-m="${m}">Edit</button>
+            <button class="btn-delete" data-idx="${s._index}">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `;
+    }).join('');
+
+    // Attach edit buttons
+    tbody.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idx = parseInt(btn.dataset.idx, 10);
+            const h = parseInt(btn.dataset.h, 10);
+            const m = parseInt(btn.dataset.m, 10);
+            const tr = btn.closest('tr');
+            const durationTd = tr.children[1];
+            const actionsTd = tr.children[4];
+
+            // Replace duration cell with inputs
+            durationTd.innerHTML = `
+              <div class="session-edit-inputs">
+                <input type="number" class="edit-h" value="${h}" min="0" max="23" />
+                <span>h</span>
+                <input type="number" class="edit-m" value="${m}" min="0" max="59" />
+                <span>m</span>
+              </div>
+            `;
+
+            // Replace actions with Save/Cancel
+            actionsTd.innerHTML = `
+              <div class="session-actions">
+                <button class="btn-save">Save</button>
+                <button class="btn-cancel">Cancel</button>
+              </div>
+            `;
+
+            actionsTd.querySelector('.btn-save').addEventListener('click', () => {
+                const newH = parseInt(durationTd.querySelector('.edit-h').value, 10) || 0;
+                const newM = parseInt(durationTd.querySelector('.edit-m').value, 10) || 0;
+                const newDuration = (newH * 3600) + (newM * 60);
+                if (newDuration <= 0) return;
+                sessions[idx].duration = newDuration;
+                if (onSessionChangeCb) onSessionChangeCb('edit', idx);
+                render();
+            });
+
+            actionsTd.querySelector('.btn-cancel').addEventListener('click', () => {
+                render();
+            });
+        });
+    });
+
+    // Attach delete buttons
+    tbody.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idx = parseInt(btn.dataset.idx, 10);
+            sessions.splice(idx, 1);
+            if (onSessionChangeCb) onSessionChangeCb('delete', idx);
+            render();
+        });
+    });
 }
 
 function escapeHtml(text) {

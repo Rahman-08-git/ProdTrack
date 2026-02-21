@@ -835,6 +835,98 @@ body {
   color: var(--text-muted);
 }
 
+/* ===== Session Log ===== */
+.session-log-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+#session-log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+#session-log-table th {
+  text-align: left;
+  padding: 10px 14px;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+}
+
+#session-log-table td {
+  padding: 8px 14px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+#session-log-table tbody tr:hover {
+  background: var(--bg-card-hover);
+}
+
+.session-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.session-actions button {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  font-family: inherit;
+}
+
+.session-actions button:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.session-actions .btn-delete:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.session-edit-inputs {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.session-edit-inputs input {
+  width: 45px;
+  padding: 3px 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 12px;
+  text-align: center;
+  font-family: inherit;
+}
+
+.session-edit-inputs input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.session-edit-inputs span {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 /* ===== Modal ===== */
 .modal-overlay {
   position: fixed;
