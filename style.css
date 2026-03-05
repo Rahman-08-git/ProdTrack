@@ -1089,41 +1089,6 @@ body {
   background: transparent;
 }
 
-/* ===== Responsive ===== */
-@media (max-width: 768px) {
-  :root {
-    --sidebar-w: 60px;
-  }
-
-  .brand-text,
-  .nav-btn span {
-    display: none;
-  }
-
-  .sidebar-brand {
-    justify-content: center;
-    padding: 8px;
-  }
-
-  .nav-btn {
-    justify-content: center;
-    padding: 10px;
-  }
-
-  #main-content {
-    padding: 16px;
-  }
-
-  .home-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-row {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-}
-
 /* ===== Empty State ===== */
 .empty-state {
   text-align: center;
@@ -1185,13 +1150,364 @@ body {
   background: #68d391;
 }
 
+/* ===== Responsive — Tablet (≤768px) ===== */
 @media (max-width: 768px) {
+
+  /* Convert sidebar to bottom tab bar */
+  #app {
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    /* Dynamic viewport height for mobile browsers */
+  }
+
+  #sidebar {
+    width: 100%;
+    min-width: unset;
+    flex-direction: row;
+    align-items: center;
+    padding: 0;
+    gap: 0;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    order: 2;
+    /* Push to bottom */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: var(--bg-secondary);
+  }
+
+  .sidebar-brand {
+    display: none;
+    /* Hide brand in bottom bar */
+  }
+
+  .nav-links {
+    flex-direction: row;
+    flex: 1;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .nav-btn {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    padding: 10px 16px;
+    font-size: 10px;
+    min-width: 64px;
+  }
+
+  .nav-btn span {
+    font-size: 10px;
+  }
+
+  .nav-bottom {
+    flex-direction: row;
+    margin-top: 0;
+    gap: 0;
+  }
+
+  .nav-bottom .nav-btn span {
+    font-size: 10px;
+  }
+
+  /* Auth in bottom bar */
+  .auth-user-row {
+    justify-content: center;
+    padding: 4px 8px;
+  }
+
   .auth-name {
     display: none;
   }
 
-  .auth-user-row {
+  .auth-avatar {
+    width: 22px;
+    height: 22px;
+  }
+
+  #auth-section {
+    margin-top: 0;
+  }
+
+  .auth-user-info {
+    padding: 0;
+  }
+
+  #auth-user-info .nav-btn {
+    min-width: unset;
+  }
+
+  /* Main content adjustments */
+  #main-content {
+    padding: 16px;
+    padding-bottom: 80px;
+    /* Space for bottom nav */
+    order: 1;
+    height: calc(100vh - 56px);
+    height: calc(100dvh - 56px);
+  }
+
+  /* Stats row — keep 3 columns but compact */
+  .stats-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card {
+    padding: 12px 8px;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
+
+  /* Stack home grid */
+  .home-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  /* Timer adjustments */
+  .timer-ring {
+    width: 160px;
+    height: 160px;
+  }
+
+  .timer-time {
+    font-size: 30px;
+  }
+
+  .timer-display {
+    padding: 16px 0 8px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .card-header {
+    margin-bottom: 12px;
+  }
+
+  /* Manual entry — stack vertically */
+  .manual-entry-card {
+    margin-bottom: 16px;
+  }
+
+  .manual-entry-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .manual-entry-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .manual-entry-inputs input[type="number"],
+  .manual-entry-inputs input[type="date"] {
+    width: 100%;
+  }
+
+  .manual-entry-task {
+    width: 100%;
+  }
+
+  .manual-entry-task select {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .manual-entry-row .btn {
+    width: 100%;
     justify-content: center;
-    padding: 6px;
+    padding: 12px;
+  }
+
+  /* Heatmap */
+  .heatmap-card {
+    margin-bottom: 16px;
+  }
+
+  .heatmap-container {
+    max-width: 100%;
+  }
+
+  .heatmap-cell {
+    min-height: 20px;
+  }
+
+  /* Analytics */
+  .analytics-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .month-selector {
+    width: 100%;
+  }
+
+  .month-selector input[type="month"] {
+    flex: 1;
+  }
+
+  .chart-container {
+    height: 200px;
+  }
+
+  /* Task time grid */
+  .task-time-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* Tables — scroll horizontally */
+  .table-container {
+    max-height: 300px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #task-history-table th,
+  #task-history-table td,
+  #session-log-table th,
+  #session-log-table td {
+    padding: 8px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  /* Session actions */
+  .session-actions {
+    gap: 4px;
+  }
+
+  .session-actions button {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  /* Modal */
+  .modal {
+    width: 95vw;
+    max-width: 95vw;
+    padding: 20px;
+  }
+
+  .sync-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sync-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Task list */
+  .task-list {
+    max-height: 200px;
+  }
+
+  .task-item .task-delete {
+    opacity: 1;
+    /* Always visible on touch devices */
+  }
+
+  /* Toast */
+  .toast {
+    left: 16px;
+    right: 16px;
+    bottom: 72px;
+    /* Above bottom nav */
+    text-align: center;
+  }
+}
+
+/* ===== Responsive — Small Phone (≤480px) ===== */
+@media (max-width: 480px) {
+  #main-content {
+    padding: 12px;
+    padding-bottom: 76px;
+  }
+
+  .stats-row {
+    gap: 6px;
+  }
+
+  .stat-card {
+    padding: 10px 6px;
+  }
+
+  .stat-label {
+    font-size: 8px;
+  }
+
+  .stat-value {
+    font-size: 16px;
+  }
+
+  .timer-ring {
+    width: 140px;
+    height: 140px;
+  }
+
+  .timer-time {
+    font-size: 26px;
+  }
+
+  .timer-controls .btn {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  .card-header h2 {
+    font-size: 14px;
+  }
+
+  /* Manual entry date/hours/minutes stacking */
+  .manual-entry-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  /* Task time cards — single column on very small */
+  .task-time-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-header h2 {
+    font-size: 18px;
+  }
+
+  /* Nav items smaller */
+  .nav-btn {
+    padding: 8px 10px;
+    min-width: 52px;
+  }
+
+  .nav-btn svg {
+    width: 16px;
+    height: 16px;
   }
 }
