@@ -50,20 +50,22 @@ function renderTaskAnalytics() {
     const now = new Date();
     const monthPrefix = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
 
-    // Collect all unique tasks that have sessions
-    const taskMap = {}; // taskId -> { text, todaySeconds, monthSeconds, totalSeconds }
+    // Aggregate by task NAME (case-insensitive) instead of taskId
+    // This merges "DSA" sessions across different days into one card
+    const taskMap = {}; // normalizedName -> { text, todaySeconds, monthSeconds, totalSeconds }
 
     for (const s of sessions) {
-        if (!s.taskId) continue;
-        if (!taskMap[s.taskId]) {
-            taskMap[s.taskId] = {
-                text: s.taskText || 'Untitled',
+        if (!s.taskId || !s.taskText) continue;
+        const key = s.taskText.trim().toLowerCase();
+        if (!taskMap[key]) {
+            taskMap[key] = {
+                text: s.taskText.trim(),
                 todaySeconds: 0,
                 monthSeconds: 0,
                 totalSeconds: 0
             };
         }
-        const entry = taskMap[s.taskId];
+        const entry = taskMap[key];
         entry.totalSeconds += s.duration || 0;
         if (s.date === today) {
             entry.todaySeconds += s.duration || 0;
