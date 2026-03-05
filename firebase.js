@@ -1,12 +1,6 @@
 // ===== Firebase Configuration =====
-// INSTRUCTIONS: Replace the values below with your Firebase project config.
-// 1. Go to https://console.firebase.google.com/
-// 2. Create a new project (name it "ProdTrack" or anything)
-// 3. Go to Project Settings > General > Your apps > Add web app
-// 4. Copy the firebaseConfig object and paste the values below
-
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithCredential, signOut, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -18,19 +12,22 @@ const firebaseConfig = {
     appId: "1:495598159834:web:cda80ff294e9724f90a2e3"
 };
 
+// Google OAuth Client ID — from Firebase Console > Authentication > Sign-in method > Google > Web SDK configuration
+// This is the "Web client ID" shown there.
+const GOOGLE_CLIENT_ID = "495598159834-9tjobdj5lk4reuo22f2imgibcjneveql.apps.googleusercontent.com";
+
 let app = null;
 let auth = null;
 let db = null;
 let isConfigured = false;
 
-// Check if Firebase is configured
 function checkConfig() {
     return firebaseConfig.apiKey && firebaseConfig.apiKey.length > 0;
 }
 
 export function initFirebase() {
     if (!checkConfig()) {
-        console.warn('Firebase not configured. Cloud sync disabled. See firebase.js for setup instructions.');
+        console.warn('Firebase not configured. Cloud sync disabled.');
         isConfigured = false;
         return false;
     }
@@ -41,14 +38,8 @@ export function initFirebase() {
         db = getFirestore(app);
         isConfigured = true;
 
-        // Handle redirect result from sign-in (runs after page reload)
-        getRedirectResult(auth).then(result => {
-            if (result && result.user) {
-                console.log('Sign-in redirect successful:', result.user.displayName);
-            }
-        }).catch(e => {
-            console.error('Redirect sign-in error:', e);
-        });
+        // Load Google Identity Services script
+        loadGoogleScript();
 
         return true;
     } catch (e) {
@@ -56,6 +47,17 @@ export function initFirebase() {
         isConfigured = false;
         return false;
     }
+}
+
+// Dynamically load the Google Identity Services script
+function loadGoogleScript() {
+    if (document.getElementById('google-gis-script')) return;
+    const script = document.createElement('script');
+    script.id = 'google-gis-script';
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
 }
 
 export function isFirebaseConfigured() {
@@ -70,15 +72,37 @@ export function onAuthChange(callback) {
 
 export async function signInWithGoogle() {
     if (!isConfigured) return null;
-    try {
-        const provider = new GoogleAuthProvider();
-        // Use redirect instead of popup — works reliably on GitHub Pages
-        await signInWithRedirect(auth, provider);
-        // Page will redirect away, so no result returned here
-    } catch (e) {
-        console.error('Sign-in failed:', e);
-        throw e;
-    }
+
+    return new Promise((resolve, reject) => {
+        if (typeof google === 'undefined' || !google.accounts) {
+            reject(new Error('Google Identity Services not loaded yet. Please try again.'));
+            return;
+        }
+
+        const client = google.accounts.oauth2.initTokenClient({
+            client_id: GOOGLE_CLIENT_ID,
+            scope: 'openid profile email',
+            callback: async (tokenResponse) => {
+                if (tokenResponse.error) {
+                    reject(new Error(tokenResponse.error));
+                    return;
+                }
+
+                try {
+                    // Exchange the access token for user info to get the id_token
+                    // Use the access_token to create a Firebase credential
+                    const credential = GoogleAuthProvider.credential(null, tokenResponse.access_token);
+                    const result = await signInWithCredential(auth, credential);
+                    resolve(result.user);
+                } catch (e) {
+                    console.error('Firebase credential sign-in failed:', e);
+                    reject(e);
+                }
+            },
+        });
+
+        client.requestAccessToken();
+    });
 }
 
 export async function signOutUser() {
