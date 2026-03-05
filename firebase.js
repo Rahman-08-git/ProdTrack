@@ -6,7 +6,7 @@
 // 4. Copy the firebaseConfig object and paste the values below
 
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -40,6 +40,16 @@ export function initFirebase() {
         auth = getAuth(app);
         db = getFirestore(app);
         isConfigured = true;
+
+        // Handle redirect result from sign-in (runs after page reload)
+        getRedirectResult(auth).then(result => {
+            if (result && result.user) {
+                console.log('Sign-in redirect successful:', result.user.displayName);
+            }
+        }).catch(e => {
+            console.error('Redirect sign-in error:', e);
+        });
+
         return true;
     } catch (e) {
         console.error('Firebase init failed:', e);
@@ -62,8 +72,9 @@ export async function signInWithGoogle() {
     if (!isConfigured) return null;
     try {
         const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider);
-        return result.user;
+        // Use redirect instead of popup — works reliably on GitHub Pages
+        await signInWithRedirect(auth, provider);
+        // Page will redirect away, so no result returned here
     } catch (e) {
         console.error('Sign-in failed:', e);
         throw e;
