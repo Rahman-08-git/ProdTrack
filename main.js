@@ -12,6 +12,7 @@ import { initFirebase, isFirebaseConfigured, onAuthChange, signInWithGoogle, sig
 let data = getEmptyData();
 let cloudSyncTimeout = null;
 let currentUserId = null;
+let isSyncing = false;
 
 // ===== Initialize =====
 async function init() {
@@ -41,14 +42,22 @@ async function init() {
                 data = mergeData(cloudData, localData);
                 // Cache the merged result locally
                 saveData(data);
+                // Push merged data back to cloud (in case local had new items)
+                await saveToCloud(initialUser.uid, data).catch(() => {});
             } else {
                 // No cloud data yet — use local data and push it to cloud
                 data = loadData();
-                await saveToCloud(initialUser.uid, data);
+                try {
+                    await saveToCloud(initialUser.uid, data);
+                } catch (e) {
+                    console.error('Initial cloud save failed:', e);
+                    showToast('⚠️ Could not save to cloud. Check your connection.', 'error');
+                }
             }
         } catch (e) {
             console.error('Cloud load failed, falling back to local:', e);
             data = loadData();
+            showToast('⚠️ Could not load cloud data. Using local data.', 'error');
         }
     } else {
         // Not signed in — use local data (guest mode)
@@ -87,8 +96,27 @@ async function init() {
     // Populate manual entry task dropdown
     refreshManualTaskDropdown();
 
+    // Update sync status indicator
+    updateSyncStatus(initialUser ? 'synced' : 'offline');
+
     // Hide loading overlay
     showLoadingOverlay(false);
+
+    // 5. Flush pending syncs when user closes the tab
+    window.addEventListener('beforeunload', () => {
+        if (currentUserId && cloudSyncTimeout) {
+            clearTimeout(cloudSyncTimeout);
+            // Use sendBeacon or synchronous save as last resort
+            const payload = JSON.stringify({
+                tasks: JSON.stringify(data.tasks || {}),
+                sessions: JSON.stringify(data.sessions || []),
+                settings: JSON.stringify(data.settings || {}),
+                updatedAt: Date.now()
+            });
+            // Save to localStorage as a safety net
+            saveData(data);
+        }
+    });
 }
 
 // ===== Loading Overlay =====
@@ -96,6 +124,33 @@ function showLoadingOverlay(show) {
     const overlay = document.getElementById('loading-overlay');
     if (overlay) {
         overlay.classList.toggle('show', show);
+    }
+}
+
+// ===== Sync Status Indicator =====
+function updateSyncStatus(status) {
+    // status: 'syncing' | 'synced' | 'error' | 'offline'
+    const indicator = document.getElementById('sync-status');
+    if (!indicator) return;
+
+    indicator.className = 'sync-status';
+    switch (status) {
+        case 'syncing':
+            indicator.innerHTML = '<span class="sync-dot syncing"></span> Syncing...';
+            indicator.classList.add('syncing');
+            break;
+        case 'synced':
+            indicator.innerHTML = '<span class="sync-dot synced"></span> Synced';
+            indicator.classList.add('synced');
+            break;
+        case 'error':
+            indicator.innerHTML = '<span class="sync-dot error"></span> Sync failed';
+            indicator.classList.add('error');
+            break;
+        case 'offline':
+            indicator.innerHTML = '<span class="sync-dot offline"></span> Local only';
+            indicator.classList.add('offline');
+            break;
     }
 }
 
@@ -123,12 +178,19 @@ function setupAuth(initialUser) {
         try {
             await signInWithGoogle();
         } catch (e) {
-            showToast('Sign-in failed. Try again.', 'error');
+            if (e.code === 'auth/popup-blocked') {
+                showToast('Popup blocked. Please allow popups for this site.', 'error');
+            } else if (e.code === 'auth/popup-closed-by-user') {
+                // User closed popup, no error needed
+            } else {
+                showToast('Sign-in failed: ' + (e.message || 'Unknown error'), 'error');
+            }
         }
     });
 
     logoutBtn.addEventListener('click', async () => {
         await signOutUser();
+        updateSyncStatus('offline');
         showToast('Signed out', 'success');
     });
 
@@ -144,6 +206,7 @@ function setupAuth(initialUser) {
             document.getElementById('auth-name').textContent = user.displayName || user.email || 'User';
 
             // Load cloud data and use it as source of truth
+            updateSyncStatus('syncing');
             try {
                 const cloudData = await loadFromCloud(user.uid);
                 if (cloudData) {
@@ -151,20 +214,30 @@ function setupAuth(initialUser) {
                     data = mergeData(cloudData, data);
                     saveData(data);
                     refreshAll();
+                    updateSyncStatus('synced');
                     showToast('Synced from cloud ☁️', 'success');
                 } else {
                     // First time sign-in: push current local data to cloud
-                    await saveToCloud(user.uid, data);
-                    showToast('Data saved to cloud ☁️', 'success');
+                    try {
+                        await saveToCloud(user.uid, data);
+                        updateSyncStatus('synced');
+                        showToast('Data saved to cloud ☁️', 'success');
+                    } catch (saveErr) {
+                        updateSyncStatus('error');
+                        showToast('⚠️ Failed to save data to cloud: ' + (saveErr.message || 'Permission denied'), 'error');
+                    }
                 }
             } catch (e) {
                 console.error('Cloud sync error:', e);
+                updateSyncStatus('error');
+                showToast('⚠️ Cloud sync failed: ' + (e.message || 'Check Firestore rules'), 'error');
             }
         } else {
             // Signed out — keep data in memory for current session
             currentUserId = null;
             loginBtn.style.display = 'flex';
             userInfo.style.display = 'none';
+            updateSyncStatus('offline');
         }
     });
 }
@@ -200,17 +273,42 @@ function mergeData(primary, secondary) {
     };
 }
 
-// Schedule a debounced cloud save (avoids hammering Firestore on every keystroke)
+// ===== Cloud Sync =====
+
+/**
+ * Immediately save to Firestore (for critical operations like session completion).
+ */
+async function immediateCloudSync() {
+    if (!isFirebaseConfigured() || !currentUserId) return;
+    clearTimeout(cloudSyncTimeout); // Cancel any pending debounced sync
+    updateSyncStatus('syncing');
+    try {
+        await saveToCloud(currentUserId, data);
+        updateSyncStatus('synced');
+    } catch (e) {
+        console.error('Cloud sync failed:', e);
+        updateSyncStatus('error');
+        showToast('⚠️ Sync failed. Your data is saved locally.', 'error');
+    }
+}
+
+/**
+ * Schedule a debounced cloud save (for non-critical operations like task edits).
+ * Falls back to immediate sync if the debounce period passes.
+ */
 function scheduleCloudSync() {
     if (!isFirebaseConfigured()) return;
     if (!currentUserId) return;
 
     clearTimeout(cloudSyncTimeout);
+    updateSyncStatus('syncing');
     cloudSyncTimeout = setTimeout(async () => {
         try {
             await saveToCloud(currentUserId, data);
+            updateSyncStatus('synced');
         } catch (e) {
             console.error('Cloud sync failed:', e);
+            updateSyncStatus('error');
         }
     }, 1500); // 1.5s debounce
 }
@@ -307,7 +405,9 @@ function handleSessionComplete(session) {
     const timerState = getTimerState();
     data.settings.pomodoroDuration = timerState.pomodoroDuration;
 
-    save();
+    // Session completion is critical — save immediately, not debounced
+    saveData(data);
+    immediateCloudSync();
     updateStats();
     updateHeatmap(data.sessions);
     updateAnalytics(data.sessions, data.tasks);
@@ -376,7 +476,10 @@ function setupManualEntry() {
         };
 
         data.sessions.push(session);
-        save();
+
+        // Manual time logging is critical — save immediately
+        saveData(data);
+        immediateCloudSync();
         updateStats();
         updateHeatmap(data.sessions);
         updateAnalytics(data.sessions, data.tasks);
@@ -476,7 +579,8 @@ function setupSync() {
         try {
             data = await importData(file);
             refreshAll();
-            scheduleCloudSync();
+            // Import is critical — sync immediately
+            immediateCloudSync();
             showToast('Data imported and merged!', 'success');
             modal.classList.remove('show');
         } catch (err) {

@@ -1,7 +1,7 @@
 // ===== Firebase Configuration =====
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithCredential, signOut, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, browserLocalPersistence, setPersistence } from 'firebase/auth';
+import { getFirestore, doc, setDoc, getDoc, enableIndexedDbPersistence } from 'firebase/firestore';
 
 const firebaseConfig = {
     apiKey: "AIzaSyDWNQKGBbD0SLbEfsNEqdJV5hfGW4dkSdI",
@@ -11,10 +11,6 @@ const firebaseConfig = {
     messagingSenderId: "495598159834",
     appId: "1:495598159834:web:cda80ff294e9724f90a2e3"
 };
-
-// Google OAuth Client ID — from Firebase Console > Authentication > Sign-in method > Google > Web SDK configuration
-// This is the "Web client ID" shown there.
-const GOOGLE_CLIENT_ID = "495598159834-9tjobdj5lk4reuo22f2imgibcjneveql.apps.googleusercontent.com";
 
 let app = null;
 let auth = null;
@@ -38,8 +34,23 @@ export function initFirebase() {
         db = getFirestore(app);
         isConfigured = true;
 
-        // Load Google Identity Services script
-        loadGoogleScript();
+        // Set auth persistence to LOCAL — survives browser restarts
+        setPersistence(auth, browserLocalPersistence).catch(e => {
+            console.warn('Auth persistence setup failed:', e);
+        });
+
+        // Enable Firestore offline persistence via IndexedDB.
+        // This means writes go to a local IndexedDB cache first, then sync to
+        // the server when online. Data survives browser restarts.
+        enableIndexedDbPersistence(db).catch((err) => {
+            if (err.code === 'failed-precondition') {
+                // Multiple tabs open — offline persistence can only be enabled in one tab
+                console.warn('Firestore offline persistence unavailable: multiple tabs open.');
+            } else if (err.code === 'unimplemented') {
+                // Browser doesn't support IndexedDB persistence
+                console.warn('Firestore offline persistence not supported by this browser.');
+            }
+        });
 
         return true;
     } catch (e) {
@@ -47,17 +58,6 @@ export function initFirebase() {
         isConfigured = false;
         return false;
     }
-}
-
-// Dynamically load the Google Identity Services script
-function loadGoogleScript() {
-    if (document.getElementById('google-gis-script')) return;
-    const script = document.createElement('script');
-    script.id = 'google-gis-script';
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
 }
 
 export function isFirebaseConfigured() {
@@ -87,39 +87,25 @@ export function onAuthChange(callback) {
     onAuthStateChanged(auth, callback);
 }
 
+/**
+ * Sign in with Google using Firebase's built-in signInWithPopup.
+ * This is the most reliable method and handles token exchange internally.
+ * Firebase persists the auth session in IndexedDB automatically.
+ */
 export async function signInWithGoogle() {
     if (!isConfigured) return null;
 
-    return new Promise((resolve, reject) => {
-        if (typeof google === 'undefined' || !google.accounts) {
-            reject(new Error('Google Identity Services not loaded yet. Please try again.'));
-            return;
-        }
-
-        const client = google.accounts.oauth2.initTokenClient({
-            client_id: GOOGLE_CLIENT_ID,
-            scope: 'openid profile email',
-            callback: async (tokenResponse) => {
-                if (tokenResponse.error) {
-                    reject(new Error(tokenResponse.error));
-                    return;
-                }
-
-                try {
-                    // Exchange the access token for user info to get the id_token
-                    // Use the access_token to create a Firebase credential
-                    const credential = GoogleAuthProvider.credential(null, tokenResponse.access_token);
-                    const result = await signInWithCredential(auth, credential);
-                    resolve(result.user);
-                } catch (e) {
-                    console.error('Firebase credential sign-in failed:', e);
-                    reject(e);
-                }
-            },
-        });
-
-        client.requestAccessToken();
-    });
+    try {
+        const provider = new GoogleAuthProvider();
+        provider.addScope('profile');
+        provider.addScope('email');
+        const result = await signInWithPopup(auth, provider);
+        return result.user;
+    } catch (e) {
+        // If popup is blocked, the error code will be 'auth/popup-blocked'
+        console.error('Google sign-in failed:', e);
+        throw e;
+    }
 }
 
 export async function signOutUser() {
@@ -137,8 +123,13 @@ export function getCurrentUser() {
 }
 
 // ===== Firestore =====
+
+/**
+ * Save data to Firestore. Returns true on success, false on failure.
+ * Throws on error so the caller can show feedback to the user.
+ */
 export async function saveToCloud(userId, data) {
-    if (!isConfigured || !userId) return;
+    if (!isConfigured || !userId) return false;
     try {
         await setDoc(doc(db, 'users', userId), {
             tasks: JSON.stringify(data.tasks || {}),
@@ -146,12 +137,17 @@ export async function saveToCloud(userId, data) {
             settings: JSON.stringify(data.settings || {}),
             updatedAt: Date.now()
         });
+        return true;
     } catch (e) {
         console.error('Cloud save failed:', e);
-        throw e;
+        throw e; // Let caller handle and show error to user
     }
 }
 
+/**
+ * Load data from Firestore. Returns the data object or null.
+ * Throws on error so the caller can show feedback to the user.
+ */
 export async function loadFromCloud(userId) {
     if (!isConfigured || !userId) return null;
     try {
@@ -165,6 +161,6 @@ export async function loadFromCloud(userId) {
         };
     } catch (e) {
         console.error('Cloud load failed:', e);
-        return null;
+        throw e; // Let caller handle and show error to user
     }
 }
