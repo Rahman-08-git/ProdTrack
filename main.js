@@ -1,24 +1,66 @@
 // ===== ProdTrack Main Entry =====
 import './style.css';
-import { loadData, saveData, exportData, importData } from './storage.js';
+import { loadData, saveData, exportData, importData, getEmptyData } from './storage.js';
 import { formatHoursMinutes, getSecondsForDate, getSecondsForMonth, getTotalSeconds, getTodayStr, showToast } from './utils.js';
 import { initTimer, startWithTask, getTimerState } from './timer.js';
 import { initTasks, getTasks, setTasks } from './tasks.js';
 import { initHeatmap, updateHeatmap } from './heatmap.js';
 import { initAnalytics, updateAnalytics } from './analytics.js';
-import { initFirebase, isFirebaseConfigured, onAuthChange, signInWithGoogle, signOutUser, getCurrentUser, saveToCloud, loadFromCloud } from './firebase.js';
+import { initFirebase, isFirebaseConfigured, onAuthChange, signInWithGoogle, signOutUser, getCurrentUser, saveToCloud, loadFromCloud, waitForAuth } from './firebase.js';
 
 // ===== App State =====
-let data = loadData();
+let data = getEmptyData();
 let cloudSyncTimeout = null;
+let currentUserId = null;
 
 // ===== Initialize =====
-function init() {
+async function init() {
+    // 1. Initialize Firebase first
+    const firebaseReady = initFirebase();
+
+    // 2. Wait for auth state before loading data
+    let initialUser = null;
+    if (firebaseReady) {
+        showLoadingOverlay(true);
+        try {
+            initialUser = await waitForAuth();
+        } catch (e) {
+            console.error('Auth check failed:', e);
+        }
+    }
+
+    // 3. Load data based on auth state
+    if (initialUser) {
+        currentUserId = initialUser.uid;
+        // Try loading from Firestore first (source of truth)
+        try {
+            const cloudData = await loadFromCloud(initialUser.uid);
+            if (cloudData) {
+                // Merge cloud data with any local data (in case user added data while offline)
+                const localData = loadData();
+                data = mergeData(cloudData, localData);
+                // Cache the merged result locally
+                saveData(data);
+            } else {
+                // No cloud data yet — use local data and push it to cloud
+                data = loadData();
+                await saveToCloud(initialUser.uid, data);
+            }
+        } catch (e) {
+            console.error('Cloud load failed, falling back to local:', e);
+            data = loadData();
+        }
+    } else {
+        // Not signed in — use local data (guest mode)
+        data = loadData();
+    }
+
+    // 4. Now initialize all UI modules
     setupRouting();
     setupSync();
     setupTaskSelectModal();
     setupManualEntry();
-    setupAuth();
+    setupAuth(initialUser);
 
     // Init timer with task-selection callback
     initTimer({
@@ -44,20 +86,37 @@ function init() {
 
     // Populate manual entry task dropdown
     refreshManualTaskDropdown();
+
+    // Hide loading overlay
+    showLoadingOverlay(false);
+}
+
+// ===== Loading Overlay =====
+function showLoadingOverlay(show) {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.classList.toggle('show', show);
+    }
 }
 
 // ===== Auth =====
-function setupAuth() {
-    const configured = initFirebase();
-
+function setupAuth(initialUser) {
     const loginBtn = document.getElementById('auth-login-btn');
     const logoutBtn = document.getElementById('auth-logout-btn');
     const userInfo = document.getElementById('auth-user-info');
 
-    if (!configured) {
+    if (!isFirebaseConfigured()) {
         // Firebase not configured — hide auth UI
         loginBtn.style.display = 'none';
         return;
+    }
+
+    // If user was already signed in, update UI immediately
+    if (initialUser) {
+        loginBtn.style.display = 'none';
+        userInfo.style.display = 'block';
+        document.getElementById('auth-avatar').src = initialUser.photoURL || '';
+        document.getElementById('auth-name').textContent = initialUser.displayName || initialUser.email || 'User';
     }
 
     loginBtn.addEventListener('click', async () => {
@@ -73,25 +132,28 @@ function setupAuth() {
         showToast('Signed out', 'success');
     });
 
-    // Listen for auth state changes
+    // Listen for auth state changes (handles sign-in/sign-out after initial load)
     onAuthChange(async (user) => {
         if (user) {
+            currentUserId = user.uid;
+
             // Signed in
             loginBtn.style.display = 'none';
             userInfo.style.display = 'block';
             document.getElementById('auth-avatar').src = user.photoURL || '';
             document.getElementById('auth-name').textContent = user.displayName || user.email || 'User';
 
-            // Load from cloud and merge with local
+            // Load cloud data and use it as source of truth
             try {
                 const cloudData = await loadFromCloud(user.uid);
                 if (cloudData) {
-                    data = mergeData(data, cloudData);
+                    // Merge: cloud is primary, local fills gaps
+                    data = mergeData(cloudData, data);
                     saveData(data);
                     refreshAll();
                     showToast('Synced from cloud ☁️', 'success');
                 } else {
-                    // First time: push local data to cloud
+                    // First time sign-in: push current local data to cloud
                     await saveToCloud(user.uid, data);
                     showToast('Data saved to cloud ☁️', 'success');
                 }
@@ -99,22 +161,23 @@ function setupAuth() {
                 console.error('Cloud sync error:', e);
             }
         } else {
-            // Signed out
+            // Signed out — keep data in memory for current session
+            currentUserId = null;
             loginBtn.style.display = 'flex';
             userInfo.style.display = 'none';
         }
     });
 }
 
-// Merge local + cloud data (union of tasks and sessions)
-function mergeData(local, cloud) {
-    const mergedTasks = { ...local.tasks };
-    for (const date of Object.keys(cloud.tasks || {})) {
+// Merge two datasets (primary + secondary). Primary wins on conflicts.
+function mergeData(primary, secondary) {
+    const mergedTasks = { ...primary.tasks };
+    for (const date of Object.keys(secondary.tasks || {})) {
         if (!mergedTasks[date]) {
-            mergedTasks[date] = cloud.tasks[date];
+            mergedTasks[date] = secondary.tasks[date];
         } else {
             const existingIds = new Set(mergedTasks[date].map(t => t.id));
-            for (const task of cloud.tasks[date]) {
+            for (const task of secondary.tasks[date]) {
                 if (!existingIds.has(task.id)) {
                     mergedTasks[date].push(task);
                 }
@@ -122,9 +185,9 @@ function mergeData(local, cloud) {
         }
     }
 
-    const existingTimestamps = new Set(local.sessions.map(s => s.timestamp));
-    const mergedSessions = [...local.sessions];
-    for (const session of (cloud.sessions || [])) {
+    const existingTimestamps = new Set(primary.sessions.map(s => s.timestamp));
+    const mergedSessions = [...primary.sessions];
+    for (const session of (secondary.sessions || [])) {
         if (!existingTimestamps.has(session.timestamp)) {
             mergedSessions.push(session);
         }
@@ -133,24 +196,23 @@ function mergeData(local, cloud) {
     return {
         tasks: mergedTasks,
         sessions: mergedSessions,
-        settings: { ...local.settings, ...(cloud.settings || {}) }
+        settings: { ...getEmptyData().settings, ...(primary.settings || {}), ...(secondary.settings || {}) }
     };
 }
 
 // Schedule a debounced cloud save (avoids hammering Firestore on every keystroke)
 function scheduleCloudSync() {
     if (!isFirebaseConfigured()) return;
-    const user = getCurrentUser();
-    if (!user) return;
+    if (!currentUserId) return;
 
     clearTimeout(cloudSyncTimeout);
     cloudSyncTimeout = setTimeout(async () => {
         try {
-            await saveToCloud(user.uid, data);
+            await saveToCloud(currentUserId, data);
         } catch (e) {
             console.error('Cloud sync failed:', e);
         }
-    }, 2000); // 2s debounce
+    }, 1500); // 1.5s debounce
 }
 
 // ===== Routing =====

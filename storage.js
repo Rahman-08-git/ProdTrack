@@ -1,5 +1,6 @@
 // ===== Storage Module =====
-// All data persisted in localStorage under 'prodtrack_data'
+// localStorage is used as an offline cache.
+// Firestore is the primary source of truth for authenticated users.
 
 const STORAGE_KEY = 'prodtrack_data';
 
@@ -13,6 +14,9 @@ function getDefaultData() {
     };
 }
 
+/**
+ * Load data from localStorage (offline cache).
+ */
 export function loadData() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -29,12 +33,22 @@ export function loadData() {
     }
 }
 
+/**
+ * Save data to localStorage (offline cache).
+ */
 export function saveData(data) {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
         console.error('Failed to save data:', e);
     }
+}
+
+/**
+ * Get the default/empty data shape.
+ */
+export function getEmptyData() {
+    return getDefaultData();
 }
 
 export function exportData(data) {

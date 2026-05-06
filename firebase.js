@@ -65,6 +65,23 @@ export function isFirebaseConfigured() {
 }
 
 // ===== Auth =====
+
+/**
+ * Wait for Firebase Auth to resolve the initial auth state.
+ * Returns the current user (or null) once determined.
+ * This prevents the app from booting with empty data before
+ * knowing if a user is signed in.
+ */
+export function waitForAuth() {
+    if (!isConfigured) return Promise.resolve(null);
+    return new Promise((resolve) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            unsubscribe(); // Only need the first emission
+            resolve(user);
+        });
+    });
+}
+
 export function onAuthChange(callback) {
     if (!isConfigured) return;
     onAuthStateChanged(auth, callback);
